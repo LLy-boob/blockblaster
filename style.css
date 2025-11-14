@@ -422,29 +422,3 @@ button:active {
 	}
 }
 
-/* ADD TO style.css */
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;           /* ← STOPS BOUNCE */
-  touch-action: none;         /* ← STOPS ZOOM/SWIPE */
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: none;  /* ← STOPS PULL-TO-REFRESH */
-}
-
-#preloader, .menus, canvas, .hud, #muteBtn, #propellerBanner {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-canvas {
-  display: block;
-  object-fit: contain;
-  touch-action: none;
-	}

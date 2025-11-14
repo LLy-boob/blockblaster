@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Block Bluster</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2c3f51">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="manifest" href="/menja/dist/manifest.json">
+  <link rel="icon" href="/menja/dist/icon-192.png">
+
+  <!-- ==================== PROPELLERADS GLOBAL SCRIPT ==================== -->
+  <!-- Paste the exact script you get from PropellerAds → Websites → "Global code" -->
+  <script>
+    (function(d, t, p) {
+      var s = d.createElement(t); s.type = 'text/javascript'; s.async = true;
+      s.src = 'https://cdn.propellerads.com/publisher/' + p + '.js';
+      var x = d.getElementsByTagName(t)[0]; x.parentNode.insertBefore(s, x);
+    })(document, 'script', 'YOUR_PROP_PUB_ID');   <!-- <<<--- REPLACE THIS -->
+  </script>
+</head>
+<body>
+  
+  <!-- PRELOADER — BEAUTIFUL & BRANDED -->
+<div id="preloader">
+  <div class="preloader-content">
+    <img src="/menja/dist/LLydra.jpg" alt="Block Blaster" class="preloader-logo">
+    <div class="preloader-glow"></div>
+    <div class="preloader-text">Loading...</div>
+  </div>
+</div>
+
+
+<script>
+  // PRELOADER — FIXED (uses your real image)
+  const preloader = document.getElementById('preloader');
+  const bgImg = new Image();
+  bgImg.src = "https://www.transparenttextures.com/patterns/black-linen.png";
+  const logoImg = new Image();
+  logoImg.src = "/menja/dist/LLydra.jpg";  // YOUR ACTUAL IMAGE
+
+  function hidePreloader() {
+    preloader.classList.add('preloader-hidden');
+    setTimeout(() => preloader.remove(), 900);
+  }
+
+  window.addEventListener('load', () => {
+    document.fonts.ready.then(() => {
+      Promise.all([
+        new Promise(r => { bgImg.onload = r; if (bgImg.complete) r(); }),
+        new Promise(r => { logoImg.onload = r; if (logoImg.complete) r(); })
+      ]).then(hidePreloader)
+       .catch(() => setTimeout(hidePreloader, 500));
+    });
+  });
+
+  // NEVER STUCK
+  setTimeout(hidePreloader, 3000);
+</script>
+
+<!-- Game canvas -->
+<canvas id="c"></canvas>
+
+<!-- Gameplay HUD -->
+<div class="hud">
+	<div class="hud__score">
+		<div class="score-lbl"></div>
+		<div class="cube-count-lbl"></div>
+	</div>
+	<div class="pause-btn"><div></div></div>
+	<div class="slowmo">
+		<div class="slowmo__bar"></div>
+	</div>
+</div>
+
+<!-- Menu System -->
+<div class="menus">
+	<div class="menu menu--main">
+		<h1>Block Blaster</h1>
+		<button type="button" class="play-normal-btn">PLAY GAME</button>
+		<button type="button" class="play-casual-btn">CASUAL MODE</button>
+		<div class="credits">An 8kB game by <a href="https://lly-boob.github.io/Ultimate-pong/">LLydra Abong</a></div>
+	</div>
+	<div class="menu menu--pause">
+		<h1>Paused</h1>
+		<button type="button" class="resume-btn">RESUME GAME</button>
+		<button type="button" class="menu-btn--pause">MAIN MENU</button>
+	</div>
+	<div class="menu menu--score">
+		<h1>Game Over</h1>
+		<h2>Your Score:</h2>
+		<div class="final-score-lbl"></div>
+		<div class="high-score-lbl"></div>
+		<button type="button" class="play-again-btn">PLAY AGAIN</button>
+		<button type="button" class="menu-btn--score">MAIN MENU</button>
+	</div>
+</div>
+
+<!-- MUSIC -->
+<audio id="bgMusic" loop preload="auto">
+  <source src="./music.mp3" type="audio/mpeg">
+</audio>
+
+<!-- MUTE BUTTON -->
+<div id="muteBtn" style="position:fixed;bottom:20px;right:20px;width:50px;height:50px;cursor:pointer;z-index:9999;">
+  <svg viewBox="0 0 24 24" width="50" height="50" fill="#fff">
+    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+  </svg>
+</div>
+
+<!-- ==================== BANNER AD CONTAINER ==================== -->
+<!-- PropellerAds will fill this div automatically once the zone is loaded -->
+<div id="propellerBanner"
+     style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+            width:320px;height:50px;z-index:9998;pointer-events:none;">
+</div>
+
+<!-- MUSIC + MUTE + SAFE PROP ADS INIT + SERVICE WORKER -->
+<script>
+  const music = document.getElementById('bgMusic');
+  const muteBtn = document.getElementById('muteBtn');
+  let muted = false;
+  let started = false;
+  let adLoaded = false;
+
+  // PLAY MUSIC & LOAD PROP ADS ON FIRST TAP
+  function startGame() {
+    if (started) return;
+    started = true;
+
+    // Start music — WITH ERROR LOGGING
+    music.volume = 0.3;
+    music.play()
+      .then(() => {
+        console.log('Music started');
+      })
+      .catch((err) => {
+        console.warn('Music blocked until interaction:', err.message);
+        // Optional: Show hint
+        showUnmuteHint();
+      });
+
+    // ---- Load PropellerAds BANNER only once after first interaction ----
+    if (!adLoaded) {
+      adLoaded = true;
+      const zoneId = 'YOUR_ZONE_ID';  // ← REPLACE THIS
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = `https://propellerads.com/api/v1/pub/zone/${zoneId}`;
+      script.onload = () => {
+        window.propellerAds?.renderBanner('propellerBanner');
+      };
+      document.head.appendChild(script);
+    }
+
+    // Remove listeners
+    document.removeEventListener('touchstart', startGame);
+    document.removeEventListener('click', startGame);
+  }
+
+  // Add listeners
+  document.addEventListener('touchstart', startGame, { once: true });
+  document.addEventListener('click', startGame, { once: true });
+
+  // MUTE BUTTON
+  muteBtn.onclick = () => {
+    muted = !muted;
+    music.muted = muted;
+    muteBtn.innerHTML = muted
+      ? `<svg viewBox="0 0 24 24" width="50" height="50" fill="#aaa">
+           <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+         </svg>`
+      : `<svg viewBox="0 0 24 24" width="50" height="50" fill="#fff">
+           <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+         </svg>`;
+  };
+
+  // OPTIONAL: Show "Tap to unmute" hint
+  function showUnmuteHint() {
+    let hint = document.getElementById('unmuteHint');
+    if (!hint) {
+      hint = document.createElement('div');
+      hint.id = 'unmuteHint';
+      hint.textContent = 'Tap anywhere to start music';
+      hint.style.cssText = `
+        position:fixed;bottom:140px;left:50%;transform:translateX(-50%);
+        padding:10px 16px;background:rgba(96,212,250,0.95);color:#000;
+        font-family:monospace;font-size:14px;border-radius:8px;
+        z-index:10000;opacity:0;transition:opacity 0.4s;
+      `;
+      document.body.appendChild(hint);
+    }
+    hint.style.opacity = '1';
+    setTimeout(() => hint.style.opacity = '0', 3000);
+  }
+</script>
+
+  // ========================================
+  // REGISTER SERVICE WORKER — FULL PWA
+  // ========================================
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => {
+          console.log('✅ SW registered:', reg.scope);
+          
+          // Auto-update prompt
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                if (confirm('🎮 New version available! Reload for updates?')) {
+                  newWorker.postMessage({ action: 'skipWaiting' });
+                }
+              }
+            });
+          });
+        })
+        .catch(err => console.log('❌ SW failed:', err));
+    });
+
+    // Reload on update
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+  }
+</script>
+
+<!-- GAME SCRIPT -->
+<script type="module" src="./script.js"></script>
+
+<script src="./menja/dist/ads.js"></script>  <!-- Your fixed script -->
+
+</body>
+</html>

@@ -1519,79 +1519,76 @@ function resumeGame() {
 }
 
 function endGame() {
-	handleCanvasPointerUp();
+    handleCanvasPointerUp();
 
-	if (isNewHighScore()) {
-		setHighScore(state.game.score);
-	}
-
-	setActiveMenu(MENU_SCORE);
-
-	// --- Interstitial Ad with 50% chance ---
-	const chance = 0.5;
-	if (Math.random() < chance && window.propellerAds) {
-
-		// Watch Ad Button
-		const adBtn = document.createElement('button');
-		adBtn.textContent = "Watch Ad to Continue";
-		Object.assign(adBtn.style, {
-			position: "fixed",
-			bottom: "150px",
-			left: "50%",
-			transform: "translateX(-50%)",
-			padding: "12px 20px",
-			fontSize: "16px",
-			cursor: "pointer",
-			zIndex: "9999",
-			background: "#4CAF50",
-			color: "#fff",
-			border: "none",
-			borderRadius: "6px"
-		});
-		document.body.appendChild(adBtn);
-
-		// Skip Button
-		const skipBtn = document.createElement('button');
-		skipBtn.textContent = "Skip";
-		Object.assign(skipBtn.style, {
-			position: "fixed",
-			bottom: "100px",
-			left: "50%",
-			transform: "translateX(-50%)",
-			padding: "10px 16px",
-			fontSize: "14px",
-			cursor: "pointer",
-			zIndex: "9999",
-			background: "#f44336",
-			color: "#fff",
-			border: "none",
-			borderRadius: "6px"
-		});
-		document.body.appendChild(skipBtn);
-
-		// Watch Ad — Click
-		adBtn.addEventListener('click', () => {
-			adBtn.remove();
-			skipBtn.remove();
-
-			function showEndGameAd() {
-    if (window.monetag) {
-        window.monetag.showInterstitial(); // Example, depends on Monetag docs
+    if (isNewHighScore()) {
+        setHighScore(state.game.score);
     }
-}
 
-// Call this at end of game
-if (gameOver) {
-    showEndGameAd();
-			}
-			
-		// Skip — Click
-		skipBtn.addEventListener('click', () => {
-			adBtn.remove();
-			skipBtn.remove();
-		});
+    setActiveMenu(MENU_SCORE);
+
+    // --- Interstitial Ad with 50% chance ---
+    const chance = 0.5;
+    if (Math.random() < chance && window.monetag) {
+
+        // Watch Ad Button
+        const adBtn = document.createElement('button');
+        adBtn.textContent = "Watch Ad to Continue";
+        Object.assign(adBtn.style, {
+            position: "fixed",
+            bottom: "150px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "12px 20px",
+            fontSize: "16px",
+            cursor: "pointer",
+            zIndex: "9999",
+            background: "#4CAF50",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px"
+        });
+        document.body.appendChild(adBtn);
+
+        // Skip Button
+        const skipBtn = document.createElement('button');
+        skipBtn.textContent = "Skip";
+        Object.assign(skipBtn.style, {
+            position: "fixed",
+            bottom: "100px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "10px 16px",
+            fontSize: "14px",
+            cursor: "pointer",
+            zIndex: "9999",
+            background: "#f44336",
+            color: "#fff",
+            border: "none",
+            borderRadius: "6px"
+        });
+        document.body.appendChild(skipBtn);
+
+        // Watch Ad — Click
+        adBtn.addEventListener('click', () => {
+            adBtn.remove();
+            skipBtn.remove();
+
+            // Trigger Monetag Interstitial
+            if (window.monetag) {
+                window.monetag.showInterstitial(); // Use Monetag's JS method
+            }
+
+            // You can add any callback logic here after ad is closed
+        });
+
+        // Skip — Click
+        skipBtn.addEventListener('click', () => {
+            adBtn.remove();
+            skipBtn.remove();
+        });
+    }
 	}
-}
 
 
 ////////////////////////

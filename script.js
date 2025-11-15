@@ -1574,14 +1574,17 @@ function endGame() {
 			adBtn.remove();
 			skipBtn.remove();
 
-			// Show real PropellerAds Interstitial
-			window.propellerAds.showInterstitial('1234567', {  // ← CHANGE THIS TO YOUR ZONE ID
-				onClose: () => {
-					setActiveMenu(null);  // Hides score screen → game resumes
-				}
-			});
-		});
+			function showEndGameAd() {
+    if (window.monetag) {
+        window.monetag.showInterstitial(); // Example, depends on Monetag docs
+    }
+}
 
+// Call this at end of game
+if (gameOver) {
+    showEndGameAd();
+			}
+			
 		// Skip — Click
 		skipBtn.addEventListener('click', () => {
 			adBtn.remove();

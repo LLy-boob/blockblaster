@@ -279,6 +279,80 @@
     });
   }
 </script>
+	<script>
+// ===================== Performance Helper for Swipe Match-3 =====================
+
+// FPS monitor (optional, helps see if game drops frames)
+(function() {
+    let last = performance.now();
+    let frames = 0;
+    function fpsMonitor() {
+        const now = performance.now();
+        frames++;
+        if (now - last >= 1000) {
+            console.log("FPS:", frames);
+            frames = 0;
+            last = now;
+        }
+        requestAnimationFrame(fpsMonitor);
+    }
+    fpsMonitor();
+})();
+
+// Hardware acceleration helper for tiles
+function accelerateTiles(tileSelector) {
+    const tiles = document.querySelectorAll(tileSelector);
+    tiles.forEach(tile => {
+        tile.style.transform = "translate3d(0,0,0)";
+        tile.style.willChange = "transform";
+    });
+}
+
+// Smooth animation wrapper using requestAnimationFrame
+function animateTile(tile, targetX, targetY, duration = 300, callback) {
+    const startX = tile.offsetLeft;
+    const startY = tile.offsetTop;
+    const deltaX = targetX - startX;
+    const deltaY = targetY - startY;
+    const startTime = performance.now();
+
+    function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        tile.style.transform = `translate3d(${deltaX*progress}px, ${deltaY*progress}px, 0)`;
+        if (progress < 1) {
+            requestAnimationFrame(step);
+        } else {
+            if (callback) callback();
+        }
+    }
+    requestAnimationFrame(step);
+}
+
+// Throttle expensive game updates (e.g., combo checks)
+function throttle(fn, limit = 50) {
+    let lastCall = 0;
+    return function(...args) {
+        const now = performance.now();
+        if (now - lastCall >= limit) {
+            lastCall = now;
+            fn.apply(this, args);
+        }
+    }
+}
+
+// ===================== Usage Examples =====================
+
+// 1. Accelerate all tiles
+accelerateTiles(".tile"); // replace ".tile" with your tile class
+
+// 2. Animate a tile smoothly
+// animateTile(document.querySelector(".tile"), 200, 300, 300);
+
+// 3. Throttle heavy functions
+// const checkCombosThrottled = throttle(checkCombos, 50);
+
+</script>
 
 <!-- GAME SCRIPT -->
 <script type="module" src="./script.js"></script>

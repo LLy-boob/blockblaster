@@ -279,6 +279,120 @@
     });
   }
 </script>
+
+<style>
+/* ===== Install Popup Animation ===== */
+#autoInstallBox {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+    transition: all 0.6s ease;
+}
+
+#autoInstallBox.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    animation: bounceIn 0.6s ease-out;
+}
+
+@keyframes bounceIn {
+    0% { transform: translate(-50%, -40px); }
+    60% { transform: translate(-50%, 5px); }
+    100% { transform: translate(-50%, 0); }
+}
+</style>
+
+
+<!-- ===== AUTO INSTALL POPUP ===== -->
+<div id="autoInstallBox" style="
+    display:none;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    background: #111;
+    color: #fff;
+    padding: 15px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    z-index: 99999;
+    text-align:center;
+    font-size: 16px;
+">
+    <div style="margin-bottom: 10px;">
+        Install this game for faster play & offline access!
+    </div>
+
+    <button id="autoInstallBtn" style="
+        background: #1e90ff;
+        border: none;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 15px;
+        cursor: pointer;
+    ">
+        Install Now
+    </button>
+</div>
+
+
+<script>
+/* ===== Install Prompt Logic ===== */
+let deferredPrompt = null;
+let popupShown = false;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    if (!popupShown) {
+        setTimeout(showPopup, 2000); // show after 2 seconds
+    }
+});
+
+function showPopup() {
+    if (deferredPrompt) {
+        const box = document.getElementById("autoInstallBox");
+        box.style.display = "block";
+
+        // Start animation
+        setTimeout(() => {
+            box.classList.add("show");
+        }, 20);
+
+        popupShown = true;
+
+        // Re-show every 10 seconds
+        setTimeout(() => {
+            if (deferredPrompt) showPopup();
+        }, 10000);
+    }
+}
+
+document.getElementById("autoInstallBtn").addEventListener("click", () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    deferredPrompt = null;
+    hidePopup();
+});
+
+// Hide forever once installed
+window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    hidePopup();
+});
+
+function hidePopup() {
+    const box = document.getElementById("autoInstallBox");
+    box.classList.remove("show");
+
+    setTimeout(() => {
+        box.style.display = "none";
+    }, 600);
+}
+	</script>
+
+	
 	<script>
 // ===================== Performance Helper for Swipe Match-3 =====================
 

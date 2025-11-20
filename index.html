@@ -105,23 +105,24 @@
     </p>
 																			 </div>
   
-  <!-- PRELOADER — BEAUTIFUL & BRANDED -->
-<div id="preloader">
-  <div class="preloader-content">
-    <img src="./LLydra.jpg" alt="Block Blaster" class="preloader-logo">
-    <div class="preloader-glow"></div>
-    <div class="preloader-text">Loading...</div>
-  </div>
-</div>
-
-
-<script>
-  // PRELOADER — FIXED (uses your real image)
+  <script>
+  // PRELOADER — FIXED (optimized for faster render)
   const preloader = document.getElementById('preloader');
+
+  // Load background first (small and fast)
   const bgImg = new Image();
   bgImg.src = "https://www.transparenttextures.com/patterns/black-linen.png";
+
+  // Load main logo later, after page starts rendering
   const logoImg = new Image();
-  logoImg.src ="./LLydra.jpg";  // YOUR ACTUAL IMAGE
+  logoImg.onload = () => {
+      // once logo loaded, continue as usual
+      hidePreloader();
+  };
+  // start loading logo after small delay to not block page
+  setTimeout(() => {
+      logoImg.src = "./LLydra.jpg";
+  }, 50);
 
   function hidePreloader() {
     preloader.classList.add('preloader-hidden');
@@ -131,8 +132,8 @@
   window.addEventListener('load', () => {
     document.fonts.ready.then(() => {
       Promise.all([
-        new Promise(r => { bgImg.onload = r; if (bgImg.complete) r(); }),
-        new Promise(r => { logoImg.onload = r; if (logoImg.complete) r(); })
+        new Promise(r => { if (bgImg.complete) r(); else bgImg.onload = r; }),
+        new Promise(r => { if (logoImg.complete) r(); else logoImg.onload = r; })
       ]).then(hidePreloader)
        .catch(() => setTimeout(hidePreloader, 500));
     });
@@ -140,7 +141,8 @@
 
   // NEVER STUCK
   setTimeout(hidePreloader, 3000);
-</script>
+  </script>
+
 
 <!-- Game canvas -->
 <canvas id="c"></canvas>

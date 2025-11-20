@@ -2298,4 +2298,27 @@ if ('PointerEvent' in window) {
 setupCanvases();
 
 
+// --------------------------
+// DELAYED LOADERS (SAFE)
+// --------------------------
 
+window.addEventListener("load", () => {
+  setTimeout(loadAdsSafe, 2500);
+  setTimeout(loadPWA, 4000);
+  setTimeout(loadShareButton, 3000);
+});
+
+function loadAdsSafe() {
+  // TODO: Load monetag, propeller, vignette, menja, etc.
+}
+
+function loadPWA() {
+  // TODO: Service worker registration here
+}
+
+function loadShareButton() {
+  // TODO: Show/share UI logic
+}
+
+
+			

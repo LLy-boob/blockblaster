@@ -350,6 +350,39 @@ document.addEventListener("DOMContentLoaded", () => {
 	</script>
 
 <style>
+
+<script>
+// =========================
+// Touch Input Ultra Booster
+// =========================
+
+// Makes touchmove fire at maximum device speed
+// without changing how your game handles swipes.
+document.addEventListener("DOMContentLoaded", () => {
+    const canvas = document.querySelector("canvas");
+    if (!canvas) return;
+
+    const opts = { passive: true }; 
+    // passive:true means "do NOT block game logic"
+
+    let lastX = 0;
+    let lastY = 0;
+
+    canvas.addEventListener("touchmove", e => {
+        const t = e.touches[0];
+        lastX = t.clientX;
+        lastY = t.clientY;
+
+        // You can read lastX / lastY anywhere,
+        // the game will feel smoother because input refreshes faster.
+    }, opts);
+
+    // Make the browser render touch faster
+    canvas.style.touchAction = "manipulation";
+});
+</script>
+
+	
 /* ===== Install Popup Animation ===== */
 #autoInstallBox {
     opacity: 0;

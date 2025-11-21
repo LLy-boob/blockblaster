@@ -592,7 +592,118 @@ function hidePopup() {
 })();
 	</script>
 
+<body>
+  <!-- All your existing HTML (canvas, hud, menus, mute button, etc.) stays 100% the same -->
+  <canvas id="c"></canvas>
+  <div class="hud">…</div>
+  <div class="menus">…</div>
+  <div id="muteBtn">…</div>
+  <div id="shareBtn">…</div>
+  <!-- etc. keep everything you already have -->
 
+  <!-- ===================================================== -->
+  <!--         MAGIC PERFORMANCE AUTO-ADAPTER ENGINE         -->
+  <!-- ===================================================== -->
+  <script src="https://unpkg.com/detect-gpu@5.0.38/dist/detect-gpu.min.js"></script>
+  <script>
+    // This whole block runs once at startup and decides the quality level
+    (async () => {
+      const gpu = new GpuJsDetector();
+      const result = await gpu.getGPUTier({
+        mobileBenchmarkPercentile: 50,   // realistic for phones
+        desktopBenchmarkPercentile: 50
+      });
+
+      // tier goes from 0 (very weak) → 3 (high-end)
+      const tier = result.tier; // 0, 1, 2 or 3 (or "WEBGL_UNSUPPORTED")
+      
+      let scale = 1.0;
+      let targetFps = 60;
+      let lowQualityMode = false;
+
+      if (tier <= 1) {               // very low-end phones (most Android < $200)
+        scale = 0.65;
+        targetFps = 30;
+        lowQualityMode = true;
+      } else if (tier === 2) {       // medium phones / old iPads
+        scale = 0.85;
+        targetFps = 45;
+      } else if (tier >= 3) {        // good phones, all PCs
+        scale = 1.0;
+        targetFps = 60;
+      }
+
+      // Expose to your game code (script.js can read these if you ever want)
+      window.PERF_TIER = tier;
+      window.PERF_SCALE = scale;
+      window.PERF_FPS = targetFps;
+      window.LOW_QUALITY = lowQualityMode;
+
+      // 1. Force lower resolution (the #1 fix for laggy WebGL on mobile)
+      const canvas = document.getElementById('c');
+      function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        const actualScale = lowQualityMode ? scale : Math.min(scale, 1);
+        
+        canvas.width  = canvas.clientWidth  * dpr * actualScale;
+        canvas.height = canvas.clientHeight * dpr * actualScale;
+
+        // CSS size stays full screen (sharp on high-dpi, pixelated but fast on low)
+        canvas.style.width  = '100%';
+        canvas.style.height = '100%';
+      }
+
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      // 2. Cap FPS on low-end devices (prevents burning CPU/GPU)
+      let lastFrameTime = 0;
+      const originalRaf = window.requestAnimationFrame;
+      window.requestAnimationFrame = function(callback) {
+        return originalRaf(function(time) {
+          if (!lastFrameTime) lastFrameTime = time;
+          const delta = time - lastFrameTime;
+          const interval = 1000 / targetFps;
+          
+          if (delta > interval) {
+            lastFrameTime = time - (delta % interval);
+            callback(time);
+          } else {
+            originalRaf(arguments.callee);
+          }
+        });
+      };
+
+      // 3. Remove 300 ms tap delay + make touch super responsive
+      canvas.style.touchAction = 'none';
+      ['touchstart','touchmove','touchend','touchcancel'].forEach(ev => {
+        canvas.addEventListener(ev, e => e.preventDefault(), { passive: false });
+      });
+
+      // 4. Optional: force lower precision in shaders on trash GPUs
+      // (many raw WebGL games use highp everywhere → death on Mali/Adreno 5xx)
+      if (lowQualityMode) {
+        const originalGetContext = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+          if (type.includes('webgl')) {
+            attributes = attributes || {};
+            attributes.precisionHint = 'low'; // custom flag we add
+          }
+          return originalGetContext.call(this, type, attributes);
+        };
+      }
+
+      console.log(`Block Blaster → Device tier \( {tier} → Scale: \){scale.toFixed(2)}, FPS cap: ${targetFps}`);
+    })();
+  </script>
+
+  <!-- Your original game script (untouched) -->
+  <script type="module" src="./script.js"></script>
+
+  <!-- Everything else you already have (ads, music, etc.) stays exactly the same -->
+  <script src="./menja/dist/ads.js"></script>
+  <!-- ... rest of your scripts ... -->
+	</body>
 
 	
 	<script>

@@ -781,11 +781,71 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 
 </script>
 
-<!-- GAME SCRIPT -->
-<script type="module" src="./script.js"></script>
 
-<script src="./menja/dist/ads.js"></script>  <!-- Your fixed script -->
+	
 
+<!-- ============================================= -->
+<!--   SAFE + FAST AD LOADER (ONLY AFTER PLAY)    -->
+<!-- ============================================= -->
+<script>
+// This function loads all your ads safely after the player starts the game
+function loadAdsSafely() {
+    // Prevent loading twice
+    if (window.adsAlreadyLoaded) return;
+    window.adsAlreadyLoaded = true;
+
+    // 1. Monetag
+    const monetag = document.createElement('script');
+    monetag.src = 'https://js.monetag.com/ef7c500bcbab5c68feaab4175d9cfc13.js';
+    monetag.async = true;
+    document.head.appendChild(monetag);
+
+    // 2. Push Banner (nap5k)
+    const push = document.createElement('script');
+    push.src = 'https://nap5k.com/tag.min.js';
+    push.dataset.zone = '10203402';
+    push.async = true;
+    document.body.appendChild(push);
+
+    // 3. Vignette / Fullscreen (groleegni)
+    const vignette = document.createElement('script');
+    vignette.src = 'https://groleegni.net/vignette.min.js';
+    vignette.dataset.zone = '10203415';
+    vignette.async = true;
+    document.body.appendChild(vignette);
+
+    console.log('Ads loaded safely after game start');
+}
+
+// Hook into your existing "first interaction" system (you already have this!)
+function startGameAndAds() {
+    if (window.gameStartedForAds) return;
+    window.gameStartedForAds = true;
+
+    // Your existing music unlock (keep this)
+    const music = document.getElementById('bgMusic');
+    if (music) {
+        music.play().catch(() => {});
+    }
+
+    // NOW load ads only after player tapped
+    setTimeout(loadAdsSafely, 3000); // 3-second delay = perfect balance
+}
+
+// Listen for first tap/click (you already have this — just reuse!)
+document.addEventListener('touchstart', startGameAndAds, { once: true });
+document.addEventListener('click', startGameAndAds, { once: true });
+
+// Optional: if player opens from menu later, still load ads
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        if (!window.gameStartedForAds) {
+            document.querySelector('.play-normal-btn')?.addEventListener('click', loadAdsSafely);
+            document.querySelector('.play-casual-btn')?.addEventListener('click', loadAdsSafely);
+        }
+    }, 1000);
+});
+	</script>
 
 <!-- Monetag main JS -->
 <script src="https://js.monetag.com/ef7c500bcbab5c68feaab4175d9cfc13.js"></script>
@@ -806,6 +866,11 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
   })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')));
 	</script>
 
+
+	<!-- GAME SCRIPT -->
+<script type="module" src="./script.js"></script>
+
+<script src="./menja/dist/ads.js"></script>  <!
 	
 </body>
 </html>

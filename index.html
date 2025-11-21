@@ -494,7 +494,6 @@ function hidePopup() {
 </script>
 
 
-
 <!-- ========================= -->
 <!-- Install / Open in Browser Prompt -->
 <!-- ========================= -->
@@ -545,40 +544,48 @@ function hidePopup() {
   const box = document.getElementById("openBrowserBox");
   const btn = document.getElementById("openBrowserBtn");
 
-  // Only show once per session
-  if (sessionStorage.getItem("installClicked")) return;
+  // Two flags to manage stages
+  const installClicked = sessionStorage.getItem("installClicked");
+  const inAppStageDone = sessionStorage.getItem("inAppStageDone");
 
   // Detect in-app browsers
   const ua = navigator.userAgent || navigator.vendor || window.opera;
   const inAppBrowser = /Instagram|FBAV|FBAN|Twitter|TikTok/i.test(ua);
 
-  // Change text if in-app browser
-  if (inAppBrowser) {
+  // Determine what text to show
+  if (inAppBrowser && !inAppStageDone) {
     btn.textContent = "Open in Browser to Install";
+  } else {
+    btn.textContent = "Install Game";
   }
 
-  // Show after a short delay
-  setTimeout(() => {
-    box.style.display = "block";
-    requestAnimationFrame(() => box.classList.add("show"));
-  }, 2000);
+  // Only show if not fully installed
+  if (!installClicked) {
+    setTimeout(() => {
+      box.style.display = "block";
+      requestAnimationFrame(() => box.classList.add("show"));
+    }, 2000);
+  }
 
   btn.addEventListener("click", () => {
-    if (inAppBrowser) {
-      // Tell user to manually open in browser
+    if (inAppBrowser && !inAppStageDone) {
+      // Stage 1: User is in an in-app browser
       alert("Please open this page in your browser (Chrome/Edge/Firefox) to install the game.");
+      sessionStorage.setItem("inAppStageDone", "true"); // mark that user saw this stage
+      // Keep showing next time in the real browser
     } else {
-      // Normal browser: open new tab (can trigger PWA install)
+      // Stage 2: Real browser → trigger install or open PWA page
       window.open(window.location.href, "_blank");
+      sessionStorage.setItem("installClicked", "true"); // hide permanently
     }
 
-    // Hide and mark as clicked
+    // Hide button after click
     box.classList.remove("show");
     setTimeout(() => box.style.display = "none", 300);
-    sessionStorage.setItem("installClicked", "true");
   });
 })();
 </script>
+
 
 	
 	<script>

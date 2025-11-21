@@ -1076,122 +1076,105 @@ function resetAllTargets() {
 
 
 
-// createBurst.js
 // ============================================================================
+// createBurst.js
 // ============================================================================
 
 // Track all active fragments
 const frags = [];
 // Pool inactive fragments by color, using a Map.
-// keys are color objects, and values are arrays of fragments.
-// // Also pool wireframe instances separately.
-const fragPool = new Map(allColors.map(c=>([c, []])));
-const fragWireframePool = new Map(allColors.map(c=>([c, []])));
-
+const fragPool = new Map(allColors.map(c => ([c, []])));
+const fragWireframePool = new Map(allColors.map(c => ([c, []])));
 
 const createBurst = (() => {
-	// Precompute some private data to be reused for all bursts.
-	const basePositions = mengerSpongeSplit({ x:0, y:0, z:0 }, fragRadius*2);
-	const positions = cloneVertices(basePositions);
-	const prevPositions = cloneVertices(basePositions);
-	const velocities = cloneVertices(basePositions);
+    // Precompute some private data to be reused for all bursts.
+    const basePositions = mengerSpongeSplit({ x:0, y:0, z:0 }, fragRadius*2);
+    const positions = cloneVertices(basePositions);
+    const prevPositions = cloneVertices(basePositions);
+    const velocities = cloneVertices(basePositions);
 
-	const basePositionNormals = basePositions.map(normalize);
-	const positionNormals = cloneVertices(basePositionNormals);
+    const basePositionNormals = basePositions.map(normalize);
+    const positionNormals = cloneVertices(basePositionNormals);
 
+    const fragCount = basePositions.length;
 
-	const fragCount = basePositions.length;
+    function getFragForTarget(target) {
+        const pool = target.wireframe ? fragWireframePool : fragPool;
+        let frag = pool.get(target.color).pop();
+        if (!frag) {
+            frag = new Entity({
+                model: makeCubeModel({ scale: fragRadius }),
+                color: target.color,
+                wireframe: target.wireframe
+            });
+            frag.color = target.color;
+            frag.wireframe = target.wireframe;
+        }
+        return frag;
+    }
 
-	function getFragForTarget(target) {
-		const pool = target.wireframe ? fragWireframePool : fragPool;
-		let frag = pool.get(target.color).pop();
-		if (!frag) {
-			frag = new Entity({
-				model: makeCubeModel({ scale: fragRadius }),
-				color: target.color,
-				wireframe: target.wireframe
-			});
-			frag.color = target.color;
-			frag.wireframe = target.wireframe;
-		}
-		return frag;
-	}
+    return (target, force = 1) => {
+        // Calculate fragment positions
+        transformVertices(
+            basePositions, positions,
+            target.x, target.y, target.z,
+            target.rotateX, target.rotateY, target.rotateZ,
+            1, 1, 1
+        );
+        transformVertices(
+            basePositions, prevPositions,
+            target.x - target.xD, target.y - target.yD, target.z - target.zD,
+            target.rotateX - target.rotateXD, target.rotateY - target.rotateYD, target.rotateZ - target.rotateZD,
+            1, 1, 1
+        );
 
-	return (target, force=1) => {
-		// Calculate fragment positions, and what would have been the previous positions
-		// when still a part of the larger target.
-		transformVertices(
-			basePositions, positions,
-			target.x, target.y, target.z,
-			target.rotateX, target.rotateY, target.rotateZ,
-			1, 1, 1
-		);
-		transformVertices(
-			basePositions, prevPositions,
-			target.x - target.xD, target.y - target.yD, target.z - target.zD,
-			target.rotateX - target.rotateXD, target.rotateY - target.rotateYD, target.rotateZ - target.rotateZD,
-			1, 1, 1
-		);
+        // Compute velocities
+        for (let i = 0; i < fragCount; i++) {
+            const position = positions[i];
+            const prevPosition = prevPositions[i];
+            const velocity = velocities[i];
 
-		// Compute velocity of each fragment, based on previous positions.
-		// Will write to `velocities` array.
-		for (let i=0; i<fragCount; i++) {
-			const position = positions[i];
-			const prevPosition = prevPositions[i];
-			const velocity = velocities[i];
+            velocity.x = position.x - prevPosition.x;
+            velocity.y = position.y - prevPosition.y;
+            velocity.z = position.z - prevPosition.z;
+        }
 
-			velocity.x = position.x - prevPosition.x;
-			velocity.y = position.y - prevPosition.y;
-			velocity.z = position.z - prevPosition.z;
-		}
+        // Apply target rotation to normals
+        transformVertices(
+            basePositionNormals, positionNormals,
+            0, 0, 0,
+            target.rotateX, target.rotateY, target.rotateZ,
+            1, 1, 1
+        );
 
+        for (let i = 0; i < fragCount; i++) {
+            const position = positions[i];
+            const velocity = velocities[i];
+            const normal = positionNormals[i];
 
+            const frag = getFragForTarget(target);
 
-		// Apply target rotation to normals
-		transformVertices(
-			basePositionNormals, positionNormals,
-			0, 0, 0,
-			target.rotateX, target.rotateY, target.rotateZ,
-			1, 1, 1
-		);
+            frag.x = position.x;
+            frag.y = position.y;
+            frag.z = position.z;
+            frag.rotateX = target.rotateX;
+            frag.rotateY = target.rotateY;
+            frag.rotateZ = target.rotateZ;
 
+            const burstSpeed = 2 * force;
+            const randSpeed = 2 * force;
+            const rotateScale = 0.015;
+            frag.xD = velocity.x + (normal.x * burstSpeed) + (Math.random() * randSpeed);
+            frag.yD = velocity.y + (normal.y * burstSpeed) + (Math.random() * randSpeed);
+            frag.zD = velocity.z + (normal.z * burstSpeed) + (Math.random() * randSpeed);
+            frag.rotateXD = frag.xD * rotateScale;
+            frag.rotateYD = frag.yD * rotateScale;
+            frag.rotateZD = frag.zD * rotateScale;
 
-		for (let i=0; i<fragCount; i++) {
-			const position = positions[i];
-			const velocity = velocities[i];
-			const normal = positionNormals[i];
-
-			const frag = getFragForTarget(target);
-
-			frag.x = position.x;
-			frag.y = position.y;
-			frag.z = position.z;
-			frag.rotateX = target.rotateX;
-			frag.rotateY = target.rotateY;
-			frag.rotateZ = target.rotateZ;
-
-
-			const burstSpeed = 2 * force;
-			const randSpeed = 2 * force;
-			const rotateScale = 0.015;
-			frag.xD = velocity.x + (normal.x * burstSpeed) + (Math.random() * randSpeed);
-			frag.yD = velocity.y + (normal.y * burstSpeed) + (Math.random() * randSpeed);
-			frag.zD = velocity.z + (normal.z * burstSpeed) + (Math.random() * randSpeed);
-			frag.rotateXD = frag.xD * rotateScale;
-			frag.rotateYD = frag.yD * rotateScale;
-			frag.rotateZD = frag.zD * rotateScale;
-
-			frags.push(frag);
-		};
-	}
+            frags.push(frag);
+        }
+    }
 })();
-
-
-const returnFrag = frag => {
-	frag.reset();
-	const pool = frag.wireframe ? fragWireframePool : fragPool;
-	pool.get(frag.color).push(frag);
-};
 
 
 
@@ -1604,13 +1587,14 @@ window.addEventListener('keydown', event => {
 
 
 
-
-
 // tick.js
 // ============================================================================
 // ============================================================================
 
+// Timing & delta
+let lastTime = performance.now();
 
+// Spawn & pointer state
 let spawnTime = 0;
 const maxSpawnX = 450;
 const pointerDelta = { x: 0, y: 0 };
@@ -1623,34 +1607,56 @@ let spawnExtra = 0;
 const spawnExtraDelay = 300;
 let targetSpeed = 1;
 
+// Main tick function — enhanced with delta-time for smooth frame-rate independent updates
+function tick(now = performance.now(), width, height, simTime, simSpeed, lag) {
+    // Calculate delta-time normalized to 60fps
+    const dt = (now - lastTime) / 16.67;
+    lastTime = now;
 
-function tick(width, height, simTime, simSpeed, lag) {
-	PERF_START('frame');
-	PERF_START('tick');
+    PERF_START('frame');
+    PERF_START('tick');
 
-	state.game.time += simTime;
+    // === Existing game timing logic ===
+    state.game.time += simTime;
 
-	if (slowmoRemaining > 0) {
-		slowmoRemaining -= simTime;
-		if (slowmoRemaining < 0) {
-			slowmoRemaining = 0;
-		}
-		targetSpeed = pointerIsDown ? 0.075 : 0.3;
-	} else {
-		const menuPointerDown = isMenuVisible() && pointerIsDown;
-		targetSpeed = menuPointerDown ? 0.025 : 1;
+    if (slowmoRemaining > 0) {
+        slowmoRemaining -= simTime;
+        if (slowmoRemaining < 0) slowmoRemaining = 0;
+        targetSpeed = pointerIsDown ? 0.075 : 0.3;
+    } else {
+        const menuPointerDown = isMenuVisible() && pointerIsDown;
+        targetSpeed = menuPointerDown ? 0.025 : 1;
+    }
+
+    renderSlowmoStatus(slowmoRemaining / slowmoDuration);
+
+    gameSpeed += (targetSpeed - gameSpeed) / 22 * lag;
+    gameSpeed = clamp(gameSpeed, 0, 1);
+
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    const simAirDrag = 1 - (airDrag * simSpeed);
+    const simAirDragSpark = 1 - (airDragSpark * simSpeed);
+
+    // === NEW: update fragments using dt ===
+    frags.forEach(frag => {
+        frag.x += frag.xD * dt;
+        frag.y += frag.yD * dt;
+        frag.z += frag.zD * dt;
+    });
+
+    // Call your existing update/render functions with dt if needed
+    update(dt);
+    render();
+
+    PERF_END('tick');
+    PERF_END('frame');
+
+    // Schedule next frame
+    requestAnimationFrame((t) => tick(t, width, height, simTime, simSpeed, lag));
 	}
 
-	renderSlowmoStatus(slowmoRemaining / slowmoDuration);
-
-	gameSpeed += (targetSpeed - gameSpeed) / 22 * lag;
-	gameSpeed = clamp(gameSpeed, 0, 1);
-
-	const centerX = width / 2;
-	const centerY = height / 2;
-
-	const simAirDrag = 1 - (airDrag * simSpeed);
-	const simAirDragSpark = 1 - (airDragSpark * simSpeed);
 
 	// Pointer Tracking
 	// -------------------
@@ -2242,51 +2248,54 @@ function handleCanvasPointerMove(x, y) {
 }
 
 
-// Use pointer events if available, otherwise fallback to touch events (for iOS).
-if ('PointerEvent' in window) {
-	canvas.addEventListener('pointerdown', event => {
-		event.isPrimary && handleCanvasPointerDown(event.clientX, event.clientY);
-	});
 
-	canvas.addEventListener('pointerup', event => {
-		event.isPrimary && handleCanvasPointerUp();
-	});
+// ============================
+// FASTER SWIPE / TOUCH INPUT
+// ============================
 
-	canvas.addEventListener('pointermove', event => {
-		event.isPrimary && handleCanvasPointerMove(event.clientX, event.clientY);
-	});
+let touchStartX = 0;
+let touchStartY = 0;
+let touchStartTime = 0;
+let swipeHandled = false;
 
-	// We also need to know if the mouse leaves the page. For this game, it's best if that
-	// cancels a swipe, so essentially acts as a "mouseup" event.
-	document.body.addEventListener('mouseleave', handleCanvasPointerUp);
-} else {
-	let activeTouchId = null;
-	canvas.addEventListener('touchstart', event => {
-		if (!pointerIsDown) {
-			const touch = event.changedTouches[0];
-			activeTouchId = touch.identifier;
-			handleCanvasPointerDown(touch.clientX, touch.clientY);
-		}
-	});
-	canvas.addEventListener('touchend', event => {
-		for (let touch of event.changedTouches) {
-			if (touch.identifier === activeTouchId) {
-				handleCanvasPointerUp();
-				break;
-			}
-		}
-	});
-	canvas.addEventListener('touchmove', event => {
-		for (let touch of event.changedTouches) {
-			if (touch.identifier === activeTouchId) {
-				handleCanvasPointerMove(touch.clientX, touch.clientY);
-				event.preventDefault();
-				break;
-			}
-		}
-	}, { passive: false });
+function onPointerDown(e) {
+    const x = e.clientX || e.touches?.[0].clientX;
+    const y = e.clientY || e.touches?.[0].clientY;
+
+    touchStartX = x;
+    touchStartY = y;
+    touchStartTime = performance.now();
+    swipeHandled = false;
 }
 
+function onPointerUp(e) {
+    if (swipeHandled) return;
+
+    const x = e.clientX || e.changedTouches?.[0].clientX;
+    const y = e.clientY || e.changedTouches?.[0].clientY;
+
+    const dx = x - touchStartX;
+    const dy = y - touchStartY;
+    const dt = performance.now() - touchStartTime;
+
+    // Only detect fast swipes
+    if (dt < 250 && (Math.abs(dx) > 16 || Math.abs(dy) > 16)) {
+        swipeHandled = true;
+        handleSwipe(dx, dy);
+    }
+}
+
+function handleSwipe(dx, dy) {
+    // Your existing block-hit / burst logic
+    // Just call your own function that used to run on swipe
+    hitActiveBlock(dx, dy);
+}
+
+// Attach listeners ONCE
+canvas.addEventListener("pointerdown", onPointerDown);
+canvas.addEventListener("pointerup", onPointerUp);
+canvas.addEventListener("touchstart", onPointerDown);
+canvas.addEventListener("touchend", onPointerUp);
 
 
 

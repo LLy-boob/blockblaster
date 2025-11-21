@@ -1527,68 +1527,99 @@ function endGame() {
 
     setActiveMenu(MENU_SCORE);
 
-    // --- Interstitial Ad with 50% chance ---
-    const chance = 0.5;
-    if (Math.random() < chance && window.monetag) {
+    // === ONLY 50% CHANCE TO SHOW INTERSTITIAL OFFER ===
+    if (Math.random() >= 0.5) return; // 50% skip entirely → player goes straight to score screen
 
-        // Watch Ad Button
-        const adBtn = document.createElement('button');
-        adBtn.textContent = "Watch Ad to Continue";
-        Object.assign(adBtn.style, {
-            position: "fixed",
-            bottom: "150px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            padding: "12px 20px",
-            fontSize: "16px",
-            cursor: "pointer",
-            zIndex: "9999",
-            background: "#4CAF50",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px"
-        });
-        document.body.appendChild(adBtn);
-
-        // Skip Button
-        const skipBtn = document.createElement('button');
-        skipBtn.textContent = "Skip";
-        Object.assign(skipBtn.style, {
-            position: "fixed",
-            bottom: "100px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            padding: "10px 16px",
-            fontSize: "14px",
-            cursor: "pointer",
-            zIndex: "9999",
-            background: "#f44336",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px"
-        });
-        document.body.appendChild(skipBtn);
-
-        // Watch Ad — Click
-        adBtn.addEventListener('click', () => {
-            adBtn.remove();
-            skipBtn.remove();
-
-            // Trigger Monetag Interstitial
-            if (window.monetag) {
-                window.monetag.showInterstitial(); // Use Monetag's JS method
-            }
-
-            // You can add any callback logic here after ad is closed
-        });
-
-        // Skip — Click
-        skipBtn.addEventListener('click', () => {
-            adBtn.remove();
-            skipBtn.remove();
-        });
+    // Safety check – only proceed if Monetag is loaded
+    if (!window.monetag || typeof window.monetag.showInterstitial !== 'function') {
+        console.log('Monetag not ready yet – skipping ad offer');
+        return;
     }
-	}
+
+    // === Create beautiful vignette-style overlay (dark semi-transparent background) ===
+    const overlay = document.createElement('div');
+    Object.assign(overlay.style, {
+        position: 'fixed',
+        top: 0, left: 0, width: '100%', height: '100%',
+        background: 'rgba(0, 0, 0, 0.85)',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9998,
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)' // Safari support
+    });
+    document.body.appendChild(overlay);
+
+    // === Title (optional – looks pro) ===
+    const title = document.createElement('h2');
+    title.textContent = 'Watch Ad to Continue?';
+    Object.assign(title.style, {
+        color: '#fff',
+        fontSize: '24px',
+        marginBottom: '30px',
+        textAlign: 'center'
+    });
+    overlay.appendChild(title);
+
+    // === Watch Ad Button (Green) ===
+    const adBtn = document.createElement('button');
+    adBtn.textContent = 'Watch Ad & Continue';
+    Object.assign(adBtn.style, {
+        padding: '14px 32px',
+        fontSize: '18px',
+        cursor: 'pointer',
+        background: '#4CAF50',
+        color: '#fff',
+        border: 'none',
+        borderRadius: '12px',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.4)',
+        marginBottom: '20px',
+        minWidth: '240px'
+    });
+    overlay.appendChild(adBtn);
+
+    // === Skip Button (Red, smaller) ===
+    const skipBtn = document.createElement('button');
+    skipBtn.textContent = 'No Thanks';
+    Object.assign(skipBtn.style, {
+        padding: '10px 24px',
+        fontSize: '16px',
+        cursor: 'pointer',
+        background: 'transparent',
+        color: '#ff6666',
+        border: '2px solid #ff6666',
+        borderRadius: '12px',
+        minWidth: '240px'
+    });
+    overlay.appendChild(skipBtn);
+
+    // === Helper: remove overlay cleanly ===
+    const cleanup = () => {
+        if (overlay && overlay.parentNode) {
+            overlay.parentNode.removeChild(overlay);
+        }
+    };
+
+    // === Watch Ad → Show Monetag Interstitial ===
+    adBtn.addEventListener('click', () => {
+        cleanup();
+        // This is the CORRECT & OFFICIAL way to show Monetag interstitial
+        window.monetag.showInterstitial();
+        // Optional: you can add callback if Monetag supports onClose, but not needed
+    });
+
+    // === Skip → just close ===
+    skipBtn.addEventListener('click', () => {
+        cleanup();
+    });
+
+    // Also close if player taps outside (nice UX)
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) cleanup();
+    });
+}
 
 
 ////////////////////////

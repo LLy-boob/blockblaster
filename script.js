@@ -1518,8 +1518,9 @@ function resumeGame() {
 	isPaused() && setActiveMenu(null);
 }
 
+
 function endGame() {
-    stopAdBlockForDeathScreen();   // allow ads on death screen
+    unlockAdsForDeathScreen();   // ← THIS IS THE KEY LINE – allows ads ONLY now
 
     handleCanvasPointerUp();
 
@@ -1529,67 +1530,57 @@ function endGame() {
 
     setActiveMenu(MENU_SCORE);
 
-    // === STEP 1: Try automatic Monetag ad first ===
-    let adShown = false;
+    let adFilled = false;
 
+    // Try automatic Monetag ad first
     if (typeof window.show_10220242 === 'function') {
         window.show_10220242();
-        adShown = true;
+        adFilled = true;
+    }
+    if (!adFilled && typeof window.show_10203415 === 'function') {
+        setTimeout(window.show_10203415, 500);
+        adFilled = true;
     }
 
-    if (!adShown && typeof window.show_10203415 === 'function') {
-        setTimeout(() => window.show_10203415(), 400);
-        adShown = true;
-    }
-
-    // === STEP 2: If no ad filled → show green "Watch Ad & Continue" button ===
+    // If no ad appeared after 2 seconds → show green button
     setTimeout(() => {
-        // Check if Monetag created any ad element
-        const monetagAd = document.querySelector('[id*="monetag"], [class*="monetag"], [style*="z-index: 2147483647"]');
-        if (!monetagAd) {
-            showRewardedContinueOverlay();  // your beautiful green button
+        const hasAd = document.querySelector('div[id*="monetag"], iframe[src*="monetag"], div[style*="2147483647"]');
+        if (!hasAd) {
+            showGreenContinueButton();
         }
-    }, 2000); // 2 seconds = perfect timing
+    }, 2000);
 }
 
-// Beautiful green button overlay
-function showRewardedContinueOverlay() {
+function showGreenContinueButton() {
     const overlay = document.createElement('div');
-    Object.assign(overlay.style, {
-        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-        background: 'rgba(0,0,0,0.88)', display: 'flex', flexDirection: 'column',
-        justifyContent: 'center', alignItems: 'center', zIndex: 9999,
-        backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)'
-    });
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;backdrop-filter:blur(12px);';
     document.body.appendChild(overlay);
 
     const title = document.createElement('h2');
     title.textContent = 'Watch Ad to Continue?';
-    title.style.cssText = 'color:#00ff9d;font-size:26px;margin-bottom:30px;letter-spacing:4px;';
+    title.style.cssText = 'color:#00ff9d;font-size:28px;margin-bottom:30px;letter-spacing:5px;';
     overlay.appendChild(title);
 
-    const adBtn = document.createElement('button');
-    adBtn.textContent = 'Watch Ad & Continue';
-    adBtn.style.cssText = 'padding:16px 40px;font-size:19px;background:#00ff9d;color:#000;border:none;border-radius:14px;cursor:pointer;min-width:260px;margin-bottom:20px;font-weight:bold;';
-    overlay.appendChild(adBtn);
+    const btn = document.createElement('button');
+    btn.textContent = 'Watch Ad & Continue';
+    btn.style.cssText = 'padding:18px 50px;font-size:20px;background:#00ff9d;color:#000;border:none;border-radius:16px;cursor:pointer;font-weight:bold;';
+    overlay.appendChild(btn);
 
-    const skipBtn = document.createElement('button');
-    skipBtn.textContent = 'No Thanks';
-    skipBtn.style.cssText = 'padding:12px 30px;font-size:17px;background:transparent;color:#ff6666;border:2px solid #ff6666;border-radius:14px;cursor:pointer;min-width:260px;';
-    overlay.appendChild(skipBtn);
+    const skip = document.createElement('button');
+    skip.textContent = 'No Thanks';
+    skip.style.cssText = 'margin-top:20px;padding:12px 40px;background:transparent;color:#ff6666;border:2px solid #ff6666;border-radius:16px;cursor:pointer;';
+    overlay.appendChild(skip);
 
-    const cleanup = () => overlay.parentNode && overlay.parentNode.removeChild(overlay);
+    const remove = () => overlay.remove();
 
-    adBtn.addEventListener('click', () => {
-        cleanup();
+    btn.onclick = () => {
+        remove();
         if (typeof window.show_10220242 === 'function') window.show_10220242();
         setTimeout(() => document.querySelector('.play-again-btn').click(), 6000);
-    });
-
-    skipBtn.addEventListener('click', cleanup);
-    overlay.addEventListener('click', e => e.target === overlay && cleanup());
+    };
+    skip.onclick = remove;
+    overlay.onclick = (e) => e.target === overlay && remove();
 }
-
 
 ////////////////////////
 // KEYBOARD SHORTCUTS //

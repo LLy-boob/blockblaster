@@ -862,34 +862,35 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 </script>
 
 
-	<!-- FINAL – ZERO MID-GAME VIGNETTE/INTERSTITIAL (2025 PRO METHOD) -->
+	<!-- ULTIMATE ZERO MID-GAME ADS – 2025 BULLETPROOF METHOD -->
 <script>
-let adBlockInterval = null;
+let gameActiveProtection = null;
 
-function startAdBlockDuringGameplay() {
-    if (adBlockInterval) return;
+function lockAdsDuringGameplay() {
+    if (gameActiveProtection) return;
 
-    adBlockInterval = setInterval(() => {
+    gameActiveProtection = setInterval(() => {
+        // Triple kill – Monetag checks all three
         document.dispatchEvent(new Event('mousemove'));
+        document.dispatchEvent(new Event('touchmove'));
         document.dispatchEvent(new Event('touchstart'));
         document.body.focus();
-    }, 5500); // every 5.5 seconds = total lockdown during play
+        // Extra: blur any possible ad iframe
+        document.activeElement?.blur();
+    }, 4000); // every 4 seconds = total lockdown
 }
 
-function stopAdBlockForDeathScreen() {
-    if (adBlockInterval) {
-        clearInterval(adBlockInterval);
-        adBlockInterval = null;
+function unlockAdsForDeathScreen() {
+    if (gameActiveProtection) {
+        clearInterval(gameActiveProtection);
+        gameActiveProtection = null;
     }
 }
 
-// Start blocking the moment player taps PLAY
-document.addEventListener('touchstart', startAdBlockDuringGameplay, { once: true });
-document.addEventListener('click', startAdBlockDuringGameplay, { once: true });
-
-// You already have this line in endGame() → perfect
-// stopAdBlockForDeathScreen();
-</script>
+// Start lock the moment player taps anywhere (menu or game)
+document.addEventListener('touchstart', lockAdsDuringGameplay, { once: true });
+document.addEventListener('click', lockAdsDuringGameplay, { once: true });
+	</script>
 
 
 

@@ -1518,59 +1518,96 @@ function resumeGame() {
 	isPaused() && setActiveMenu(null);
 }
 
+<!-- END GAME LOGIC (ADS + FALLBACK) -->
 
+// ======================================================
+// GAME OVER MAIN LOGIC
+// ======================================================
 function endGame() {
-    allowAdsTemporarily();   // ← ONLY here ads are allowed
-
+    allowAdsTemporarily(); 
     handleCanvasPointerUp();
 
-    if (isNewHighScore()) {
-        setHighScore(state.game.score);
-    }
+    if (isNewHighScore()) setHighScore(state.game.score);
 
     setActiveMenu(MENU_SCORE);
 
-    // Try automatic ad first
-    if (typeof window.show_10220242 === 'function') window.show_10220242();
-    if (typeof window.show_10203415 === 'function') setTimeout(window.show_10203415, 500);
+    // Try to show monetag ads
+    tryShowingAdsAtGameOver();
 
-    // If no ad after 2 seconds → show green button
+    // Check if an ad appeared
     setTimeout(() => {
-        if (!document.querySelector('div[id*="monetag"], iframe[src*="monetag"]')) {
-            showGreenContinueButton();
+        if (!adIsVisible()) {
+            showFallbackContinueUI();
         }
-    }, 2000);
+    }, 1800);
 }
 
-function showGreenContinueButton() {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;backdrop-filter:blur(12px);';
+// ======================================================
+// TRY AD FUNCTIONS
+// ======================================================
+function tryShowingAdsAtGameOver() {
+    if (typeof window.show_10220242 === "function") window.show_10220242();
+    setTimeout(() => {
+        if (typeof window.show_10203415 === "function") window.show_10203415();
+    }, 500);
+}
+
+function adIsVisible() {
+    return document.querySelector('div[id*="monetag"], iframe[src*="monetag"]');
+}
+
+// ======================================================
+// FALLBACK SCREEN
+// ======================================================
+function showFallbackContinueUI() {
+    const overlay = document.createElement("div");
+    overlay.style.cssText = `
+        position:fixed;top:0;left:0;width:100%;height:100%;
+        background:rgba(0,0,0,0.9);
+        display:flex;flex-direction:column;
+        justify-content:center;align-items:center;
+        z-index:9999;backdrop-filter:blur(12px);
+    `;
     document.body.appendChild(overlay);
 
-    const title = document.createElement('h2');
-    title.textContent = 'Watch Ad to Continue?';
-    title.style.cssText = 'color:#00ff9d;font-size:28px;margin-bottom:30px;letter-spacing:6px;';
+    const title = document.createElement("h2");
+    title.textContent = "Watch Ad to Continue?";
+    title.style.cssText = `
+        color:#00ff9d;font-size:28px;margin-bottom:30px;
+        letter-spacing:4px;text-align:center;
+    `;
     overlay.appendChild(title);
 
-    const btn = document.createElement('button');
-    btn.textContent = 'Watch Ad & Continue';
-    btn.style.cssText = 'padding:18px 55px;font-size:21px;background:#00ff9d;color:#000;border:none;border-radius:16px;cursor:pointer;font-weight:bold;';
+    const btn = document.createElement("button");
+    btn.textContent = "Watch Ad & Continue";
+    btn.style.cssText = `
+        padding:18px 50px;font-size:20px;
+        background:#00ff9d;color:#000;
+        border:none;border-radius:16px;
+        cursor:pointer;font-weight:bold;
+    `;
     overlay.appendChild(btn);
 
-    const skip = document.createElement('button');
-    skip.textContent = 'No Thanks';
-    skip.style.cssText = 'margin-top:25px;padding:14px 45px;background:transparent;color:#ff6666;border:2px solid #ff6666;border-radius:16px;cursor:pointer;';
+    const skip = document.createElement("button");
+    skip.textContent = "No Thanks";
+    skip.style.cssText = `
+        margin-top:25px;padding:14px 45px;
+        background:transparent;color:#ff6666;
+        border:2px solid #ff6666;border-radius:14px;
+        cursor:pointer;font-size:18px;
+    `;
     overlay.appendChild(skip);
 
     const remove = () => overlay.remove();
 
     btn.onclick = () => {
         remove();
-        if (typeof window.show_10220242 === 'function') window.show_10220242();
+        if (typeof window.show_10220242 === "function") window.show_10220242();
+
         setTimeout(() => {
-            document.querySelector('.play-again-btn').click();
+            document.querySelector(".play-again-btn")?.click();
             blockAdsForNewGame();
-        }, 6000);
+        }, 5000);
     };
 
     skip.onclick = () => {
@@ -1578,6 +1615,8 @@ function showGreenContinueButton() {
         blockAdsForNewGame();
     };
 }
+
+
 
 
 ////////////////////////

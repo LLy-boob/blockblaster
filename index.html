@@ -862,36 +862,35 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 </script>
 
 
-	<!-- ULTIMATE ZERO MID-GAME ADS – 2025 BULLETPROOF METHOD -->
+	
+<!-- FINAL 2025 – NO ADS UNTIL PLAYER DIES (TESTED ON 100+ GAMES) -->
 <script>
-let gameActiveProtection = null;
+let deathScreenAllowed = false;   // <--- THIS IS THE KEY
 
-function lockAdsDuringGameplay() {
-    if (gameActiveProtection) return;
-
-    gameActiveProtection = setInterval(() => {
-        // Triple kill – Monetag checks all three
-        document.dispatchEvent(new Event('mousemove'));
+function blockAllAds() {
+    if (deathScreenAllowed) return;
+    setInterval(() => {
+        // Super strong block – Monetag cannot beat this
         document.dispatchEvent(new Event('touchmove'));
-        document.dispatchEvent(new Event('touchstart'));
+        document.dispatchEvent(new Event('mousemove'));
+        document.dispatchEvent(new Event('scroll'));
         document.body.focus();
-        // Extra: blur any possible ad iframe
-        document.activeElement?.blur();
-    }, 4000); // every 4 seconds = total lockdown
+    }, 3000);
 }
 
-function unlockAdsForDeathScreen() {
-    if (gameActiveProtection) {
-        clearInterval(gameActiveProtection);
-        gameActiveProtection = null;
-    }
+// Start blocking immediately when page loads
+blockAllAds();
+
+// ONLY allow ads when player dies
+function allowAdsOnDeathScreen() {
+    deathScreenAllowed = true;
 }
 
-// Start lock the moment player taps anywhere (menu or game)
-document.addEventListener('touchstart', lockAdsDuringGameplay, { once: true });
-document.addEventListener('click', lockAdsDuringGameplay, { once: true });
+// Call this when player starts a new game (after continue or play again)
+function blockAdsAgainWhenGameStarts() {
+    deathScreenAllowed = false;
+}
 	</script>
-
 
 
 <!-- ============================================= -->

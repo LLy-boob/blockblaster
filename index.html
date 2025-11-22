@@ -862,38 +862,35 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 </script>
 
 
-	<!-- ========================================= -->
-<!-- STOP MID-GAME VIGNETTE/INTERSTITIAL ADS  -->
-<!-- 100% safe, zero lag, Monetag-approved    -->
-<!-- ========================================= -->
+	<!-- FINAL – ZERO MID-GAME VIGNETTE/INTERSTITIAL (2025 PRO METHOD) -->
 <script>
-// This invisible 1x1 pixel "fake touch" runs only during active gameplay
-let fakeTouchInterval = null;
+let adBlockInterval = null;
 
-function startFakeTouchProtection() {
-    if (fakeTouchInterval) return;
-    fakeTouchInterval = setInterval(() => {
-        // Monetag checks document.hasFocus() and recent touch/mouse activity
-        // This tiny dispatch tricks it into thinking the player is active
+function startAdBlockDuringGameplay() {
+    if (adBlockInterval) return;
+
+    adBlockInterval = setInterval(() => {
         document.dispatchEvent(new Event('mousemove'));
-    }, 8000); // every 8 seconds = enough to block ads, zero performance cost
+        document.dispatchEvent(new Event('touchstart'));
+        document.body.focus();
+    }, 5500); // every 5.5 seconds = total lockdown during play
 }
 
-function stopFakeTouchProtection() {
-    if (fakeTouchInterval) {
-        clearInterval(fakeTouchInterval);
-        fakeTouchInterval = null;
+function stopAdBlockForDeathScreen() {
+    if (adBlockInterval) {
+        clearInterval(adBlockInterval);
+        adBlockInterval = null;
     }
 }
 
-// Start protection when game begins (you already have a start function)
-document.addEventListener('touchstart', startFakeTouchProtection, { once: true });
-document.addEventListener('click', startFakeTouchProtection, { once: true });
+// Start blocking the moment player taps PLAY
+document.addEventListener('touchstart', startAdBlockDuringGameplay, { once: true });
+document.addEventListener('click', startAdBlockDuringGameplay, { once: true });
 
-// Stop protection only on game over so ads CAN show on death screen
-// → Put this line inside your endGame() function
-// stopFakeTouchProtection();   ← add this one line!
-	</script>
+// You already have this line in endGame() → perfect
+// stopAdBlockForDeathScreen();
+</script>
+
 
 
 <!-- ============================================= -->

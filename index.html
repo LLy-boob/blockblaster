@@ -777,13 +777,7 @@ function hidePopup() {
     })();
   </script>
 
-  <!-- Your original game script (untouched) -->
-  <script type="module" src="./script.js"></script>
 
-  <!-- Everything else you already have (ads, music, etc.) stays exactly the same -->
-  <script src="./menja/dist/ads.js"></script>
-  <!-- ... rest of your scripts ... -->
-	</body>
 
 	
 	<script>
@@ -863,82 +857,89 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 
 
 	
-<!-- FINAL 2025 – ZERO LAG + ZERO MID-GAME ADS + PERFECT REWARDED CONTINUE -->
+<!-- MONETAG AD CONTROLLER (GLOBAL) -->
 <script>
-let adsAllowed = false;   // Master switch
+// ======================================================
+// GLOBAL AD STATE
+// ======================================================
+let adsAllowed = false;       // Only true on Game Over
+let adsLoaded = false;        // Load ad scripts once
+let gameStarted = false;      // First tap → load ads
 
-// Block Monetag full-screen ads during gameplay
+// ======================================================
+// MID-GAME AD BLOCKER (SAFE)
+// ======================================================
 setInterval(() => {
     if (!adsAllowed) {
-        document.dispatchEvent(new Event('touchmove'));
-        document.dispatchEvent(new Event('mousemove'));
+        document.dispatchEvent(new Event("touchmove"));
+        document.dispatchEvent(new Event("mousemove"));
         document.body.focus();
     }
-}, 4000);
+}, 3500);
 
-// Temporarily allow ads on death screen
+// ======================================================
+// CONTROL HELPERS
+// ======================================================
 function allowAdsTemporarily() {
     adsAllowed = true;
     setTimeout(() => { adsAllowed = false; }, 12000);
 }
 
-// Block ads again when new game starts
 function blockAdsForNewGame() {
     adsAllowed = false;
 }
 
-// Load all ads with smart delays – ZERO lag on first play
+// ======================================================
+// SAFE DELAYED MONETAG LOADING
+// ======================================================
 function loadAdsSafely() {
-    if (window.adsAlreadyLoaded) return;
-    window.adsAlreadyLoaded = true;
+    if (adsLoaded) return;
+    adsLoaded = true;
 
-    // Monetag main
+    // MAIN
     setTimeout(() => {
-        const s = document.createElement('script');
-        s.src = 'https://js.monetag.com/ef7c500bcbab5c68feaab4175d9cfc13.js';
-        s.async = true;
-        document.head.appendChild(s);
+        loadAdScript("https://js.monetag.com/ef7c500bcbab5c68feaab4175d9cfc13.js");
     }, 4000);
 
-    // Push banner (delayed so no lag)
+    // VINTAGE
     setTimeout(() => {
-        const s = document.createElement('script');
-        s.src = 'https://nap5k.com/tag.min.js';
-        s.dataset.zone = '10203402';
-        s.async = true;
-        document.body.appendChild(s);
-    }, 9000);
-
-    // Vignette
-    setTimeout(() => {
-        const s = document.createElement('script');
-        s.src = 'https://groleegni.net/vignette.min.js';
-        s.dataset.zone = '10203415';
-        s.async = true;
-        document.body.appendChild(s);
+        loadAdScript("https://groleegni.net/vignette.min.js", { zone: "10203415" });
     }, 6000);
 
-    // Interstitial (rewarded)
+    // INTERSTITIAL / REWARDED
     setTimeout(() => {
-        const s = document.createElement('script');
-        s.src = 'https://gizokraijaw.net/vignette.min.js';
-        s.dataset.zone = '10220242';
-        s.async = true;
-        document.body.appendChild(s);
+        loadAdScript("https://gizokraijaw.net/vignette.min.js", { zone: "10220242" });
     }, 5000);
+
+    // PUSH BANNER
+    setTimeout(() => {
+        loadAdScript("https://nap5k.com/tag.min.js", { zone: "10203402" });
+    }, 9000);
 }
 
-// Start everything after first tap
+function loadAdScript(src, data = {}) {
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    for (let key in data) s.dataset[key] = data[key];
+    document.body.appendChild(s);
+}
+
+// ======================================================
+// FIRST TAP = LOAD ADS + PLAY MUSIC
+// ======================================================
 function startGameAndAds() {
-    if (window.gameStartedForAds) return;
-    window.gameStartedForAds = true;
-    const music = document.getElementById('bgMusic');
+    if (gameStarted) return;
+    gameStarted = true;
+
+    const music = document.getElementById("bgMusic");
     if (music) music.play().catch(() => {});
-    setTimeout(loadAdsSafely, 3000);
+
+    setTimeout(loadAdsSafely, 2500);
 }
 
-document.addEventListener('touchstart', startGameAndAds, { once: true });
-document.addEventListener('click', startGameAndAds, { once: true });
+document.addEventListener("touchstart", startGameAndAds, { once: true });
+document.addEventListener("click", startGameAndAds, { once: true });
 	</script>
 
 

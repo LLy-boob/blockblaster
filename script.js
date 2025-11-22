@@ -1518,8 +1518,9 @@ function resumeGame() {
 	isPaused() && setActiveMenu(null);
 }
 
+
 function endGame() {
-    allowAdsTemporarily();   // ← ads allowed ONLY now
+    allowAdsTemporarily();   // ← ONLY here ads are allowed
 
     handleCanvasPointerUp();
 
@@ -1529,13 +1530,9 @@ function endGame() {
 
     setActiveMenu(MENU_SCORE);
 
-    // Try automatic Monetag ad first
-    if (typeof window.show_10220242 === 'function') {
-        window.show_10220242();
-    }
-    if (typeof window.show_10203415 === 'function') {
-        setTimeout(window.show_10203415, 500);
-    }
+    // Try automatic ad first
+    if (typeof window.show_10220242 === 'function') window.show_10220242();
+    if (typeof window.show_10203415 === 'function') setTimeout(window.show_10203415, 500);
 
     // If no ad after 2 seconds → show green button
     setTimeout(() => {
@@ -1572,13 +1569,13 @@ function showGreenContinueButton() {
         if (typeof window.show_10220242 === 'function') window.show_10220242();
         setTimeout(() => {
             document.querySelector('.play-again-btn').click();
-            blockAdsForNewGame();   // ← block again for next game
+            blockAdsForNewGame();
         }, 6000);
     };
 
     skip.onclick = () => {
         remove();
-        blockAdsForNewGame();   // ← block again
+        blockAdsForNewGame();
     };
 }
 

@@ -1519,8 +1519,10 @@ function resumeGame() {
 }
 
 
+    
+
     function endGame() {
-    allowAdsTemporarily();   // ← Allows ads ONLY on death screen (12-second window)
+    allowAdsTemporarily();   // Allow ads only for the next Play Again click
 
     handleCanvasPointerUp();
 
@@ -1530,61 +1532,22 @@ function resumeGame() {
 
     setActiveMenu(MENU_SCORE);
 
-    // Try automatic Monetag ad first
-    if (typeof window.show_10220242 === 'function') {
-        window.show_10220242();
-    }
-    if (typeof window.show_10203415 === 'function') {
-        setTimeout(window.show_10203415, 500);
-    }
-
-    // If no ad appeared after 2 seconds → show green button
+    // Hook Play Again button to show ad first
     setTimeout(() => {
-        const hasAd = document.querySelector('div[id*="monetag"], iframe[src*="monetag"], div[style*="z-index: 99999"]');
-        if (!hasAd) {
-            showGreenContinueButton();
+        const playAgainBtn = document.querySelector('.play-again-btn');
+        if (playAgainBtn) {
+            playAgainBtn.onclick = () => {
+                if (typeof window.show_10220242 === 'function') window.show_10220242();
+                if (typeof window.show_10203415 === 'function') setTimeout(window.show_10203415, 500);
+
+                setTimeout(() => {
+                    document.querySelector('.play-again-btn').click(); // or your real restart function
+                    blockAdsForNewGame();
+                }, 5000);
+            };
         }
-    }, 2000);
+    }, 100);
 }
-
-function showGreenContinueButton() {
-    const overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;backdrop-filter:blur(12px);';
-    document.body.appendChild(overlay);
-
-    const title = document.createElement('h2');
-    title.textContent = 'Watch Ad to Continue?';
-    title.style.cssText = 'color:#00ff9d;font-size:28px;margin-bottom:30px;letter-spacing:6px;';
-    overlay.appendChild(title);
-
-    const btn = document.createElement('button');
-    btn.textContent = 'Watch Ad & Continue';
-    btn.style.cssText = 'padding:18px 55px;font-size:21px;background:#00ff9d;color:#000;border:none;border-radius:16px;cursor:pointer;font-weight:bold;';
-    overlay.appendChild(btn);
-
-    const skip = document.createElement('button');
-    skip.textContent = 'No Thanks';
-    skip.style.cssText = 'margin-top:25px;padding:14px 45px;background:transparent;color:#ff6666;border:2px solid #ff6666;border-radius:16px;cursor:pointer;';
-    overlay.appendChild(skip);
-
-    const remove = () => overlay.remove();
-
-    btn.onclick = () => {
-        remove();
-        if (typeof window.show_10220242 === 'function') window.show_10220242();
-        setTimeout(() => {
-            document.querySelector('.play-again-btn').click();
-            blockAdsForNewGame();   // ← Blocks ads again for next game
-        }, 6000);
-    };
-
-    skip.onclick = () => {
-        remove();
-        blockAdsForNewGame();   // ← Blocks ads again for next game
-    };
-
-    overlay.onclick = (e) => e.target === overlay && (remove(), blockAdsForNewGame());
-			}
 
 
 

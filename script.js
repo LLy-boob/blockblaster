@@ -1519,6 +1519,8 @@ function resumeGame() {
 }
 
 function endGame() {
+    stopAdBlockForDeathScreen();   // allow ads on death screen
+
     handleCanvasPointerUp();
 
     if (isNewHighScore()) {
@@ -1527,10 +1529,31 @@ function endGame() {
 
     setActiveMenu(MENU_SCORE);
 
-    // === ONLY 50% CHANCE TO SHOW THE OFFER ===
-    if (Math.random() >= 0.5) return;
+    // === STEP 1: Try automatic Monetag ad first ===
+    let adShown = false;
 
-    // Create beautiful overlay
+    if (typeof window.show_10220242 === 'function') {
+        window.show_10220242();
+        adShown = true;
+    }
+
+    if (!adShown && typeof window.show_10203415 === 'function') {
+        setTimeout(() => window.show_10203415(), 400);
+        adShown = true;
+    }
+
+    // === STEP 2: If no ad filled → show green "Watch Ad & Continue" button ===
+    setTimeout(() => {
+        // Check if Monetag created any ad element
+        const monetagAd = document.querySelector('[id*="monetag"], [class*="monetag"], [style*="z-index: 2147483647"]');
+        if (!monetagAd) {
+            showRewardedContinueOverlay();  // your beautiful green button
+        }
+    }, 2000); // 2 seconds = perfect timing
+}
+
+// Beautiful green button overlay
+function showRewardedContinueOverlay() {
     const overlay = document.createElement('div');
     Object.assign(overlay.style, {
         position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
@@ -1542,12 +1565,12 @@ function endGame() {
 
     const title = document.createElement('h2');
     title.textContent = 'Watch Ad to Continue?';
-    title.style.cssText = 'color:#fff;font-size:26px;margin-bottom:30px;';
+    title.style.cssText = 'color:#00ff9d;font-size:26px;margin-bottom:30px;letter-spacing:4px;';
     overlay.appendChild(title);
 
     const adBtn = document.createElement('button');
     adBtn.textContent = 'Watch Ad & Continue';
-    adBtn.style.cssText = 'padding:16px 40px;font-size:19px;background:#4CAF50;color:#fff;border:none;border-radius:14px;cursor:pointer;min-width:260px;margin-bottom:20px;';
+    adBtn.style.cssText = 'padding:16px 40px;font-size:19px;background:#00ff9d;color:#000;border:none;border-radius:14px;cursor:pointer;min-width:260px;margin-bottom:20px;font-weight:bold;';
     overlay.appendChild(adBtn);
 
     const skipBtn = document.createElement('button');
@@ -1557,26 +1580,15 @@ function endGame() {
 
     const cleanup = () => overlay.parentNode && overlay.parentNode.removeChild(overlay);
 
-    // === PLAYER CLICKS "WATCH AD & CONTINUE" ===
     adBtn.addEventListener('click', () => {
         cleanup();
-
-        // Show Monetag ad if available
-        if (typeof window.show_10220242 === 'function') {
-            window.show_10220242();
-        }
-
-        // === ALWAYS continue the game after 5 seconds (even if no ad) ===
-        setTimeout(() => {
-            // This uses YOUR existing "Play Again" button logic — 100% safe!
-            document.querySelector('.play-again-btn').click();
-        }, 5000);
+        if (typeof window.show_10220242 === 'function') window.show_10220242();
+        setTimeout(() => document.querySelector('.play-again-btn').click(), 6000);
     });
 
     skipBtn.addEventListener('click', cleanup);
     overlay.addEventListener('click', e => e.target === overlay && cleanup());
 }
-
 
 
 ////////////////////////

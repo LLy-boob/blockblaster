@@ -863,11 +863,11 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 
 
 	
-<!-- FINAL CLEAN 2025 – ZERO MID-GAME ADS + PERFECT REWARDED CONTINUE -->
+<!-- FINAL 2025 – ZERO LAG + ZERO MID-GAME ADS + PERFECT REWARDED CONTINUE -->
 <script>
-let adsAllowed = false;   // <--- THE MASTER SWITCH
+let adsAllowed = false;   // Master switch
 
-// Block ALL Monetag vignette/interstitial during play
+// Block Monetag full-screen ads during gameplay
 setInterval(() => {
     if (!adsAllowed) {
         document.dispatchEvent(new Event('touchmove'));
@@ -876,60 +876,59 @@ setInterval(() => {
     }
 }, 4000);
 
-// Allow ads ONLY on death screen
+// Temporarily allow ads on death screen
 function allowAdsTemporarily() {
     adsAllowed = true;
-    // Re-block after 12 seconds (enough for ad + green button)
     setTimeout(() => { adsAllowed = false; }, 12000);
 }
 
-// Block again when new game starts
+// Block ads again when new game starts
 function blockAdsForNewGame() {
     adsAllowed = false;
 }
 
+// Load all ads with smart delays – ZERO lag on first play
 function loadAdsSafely() {
     if (window.adsAlreadyLoaded) return;
     window.adsAlreadyLoaded = true;
 
-    // 1. Monetag main – delay 4 seconds (never lags WebGL start)
+    // Monetag main
     setTimeout(() => {
-        const m = document.createElement('script');
-        m.src = 'https://js.monetag.com/ef7c500bcbab5c68feaab4175d9cfc13.js';
-        m.async = true;
-        document.head.appendChild(m);
+        const s = document.createElement('script');
+        s.src = 'https://js.monetag.com/ef7c500bcbab5c68feaab4175d9cfc13.js';
+        s.async = true;
+        document.head.appendChild(s);
     }, 4000);
 
-    // 2. Push banner – delay 9 seconds (player already deep in game)
+    // Push banner (delayed so no lag)
     setTimeout(() => {
-        const p = document.createElement('script');
-        p.src = 'https://nap5k.com/tag.min.js';
-        p.dataset.zone = '10203402';
-        p.async = true;
-        document.body.appendChild(p);
+        const s = document.createElement('script');
+        s.src = 'https://nap5k.com/tag.min.js';
+        s.dataset.zone = '10203402';
+        s.async = true;
+        document.body.appendChild(s);
     }, 9000);
 
-    // 3. Vignette – delay 6 seconds
+    // Vignette
     setTimeout(() => {
-        const v = document.createElement('script');
-        v.src = 'https://groleegni.net/vignette.min.js';
-        v.dataset.zone = '10203415';
-        v.async = true;
-        document.body.appendChild(v);
+        const s = document.createElement('script');
+        s.src = 'https://groleegni.net/vignette.min.js';
+        s.dataset.zone = '10203415';
+        s.async = true;
+        document.body.appendChild(s);
     }, 6000);
 
-    // 4. Interstitial (rewarded) – delay 5 seconds
+    // Interstitial (rewarded)
     setTimeout(() => {
-        const i = document.createElement('script');
-        i.src = 'https://gizokraijaw.net/vignette.min.js';
-        i.dataset.zone = '10220242';
-        i.async = true;
-        document.body.appendChild(i);
+        const s = document.createElement('script');
+        s.src = 'https://gizokraijaw.net/vignette.min.js';
+        s.dataset.zone = '10220242';
+        s.async = true;
+        document.body.appendChild(s);
     }, 5000);
+}
 
-    console.log('All ads loading with smart delays – ZERO lag on first play');
-	}
-
+// Start everything after first tap
 function startGameAndAds() {
     if (window.gameStartedForAds) return;
     window.gameStartedForAds = true;

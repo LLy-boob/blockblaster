@@ -2341,3 +2341,13 @@ function loop(now) {
 
 // 🚀 START THE LOOP
 startGameLoop();
+
+
+
+
+
+
+						// At the very end of your game init (after WebGL context, textures, etc.)
+if (typeof window.startBlockBlasterGame === 'function') {
+    window.startBlockBlasterGame();  // This removes the beautiful loader
+}

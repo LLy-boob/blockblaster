@@ -2351,3 +2351,39 @@ startGameLoop();
 if (typeof window.startBlockBlasterGame === 'function') {
     window.startBlockBlasterGame();  // This removes the beautiful loader
 }
+
+
+// ==================================================================
+// FINAL PERFECT START – WAIT FOR REAL FIRST FRAME + ADS INJECTED
+// ==================================================================
+(function waitUntilEverythingIsReallyReady() {
+    // 1. WebGL canvas must exist and be rendered at least once
+    const canvas = document.getElementById('c');
+    const gl = canvas && (canvas.getContext('webgl') || canvas.getContext('webgl2'));
+    const webglReady = gl && canvas.width > 0 && canvas.height > 0;
+
+    // 2. Your main menu must be visible (this means your game init finished)
+    const menuReady = document.querySelector('.menu--main')?.style.display !== 'none' ||
+                      document.body.classList.contains('game-ready'); // fallback
+
+    // 3. Ads scripts injected (push/vignette/interstitial)
+    const adsReady = document.querySelector('script[src*="nap5k"]') ||
+                     document.querySelector('script[src*="gizokraijaw"]') ||
+                     window.adsAlreadyLoaded;
+
+    // 4. First game frame has been drawn (your main loop ran at least once)
+    const frameRendered = window.gameLoopRunning || // if you have this variable
+                          performance.now() > 3000; // or at least 3 seconds passed
+
+    // ALL CONDITIONS MET → hide loader smoothly
+    if (webglReady && menuReady && adsReady && frameRendered) {
+        if (typeof window.startBlockBlasterGame === 'function') {
+            window.startBlockBlasterGame();
+        }
+        console.log('Block Blaster 100% ready – loader hidden');
+        return;
+    }
+
+    // Not ready yet → check again in 150ms
+    setTimeout(waitUntilEverythingIsReallyReady, 150);
+})();

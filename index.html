@@ -858,11 +858,11 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 
 	
 
-<!-- FINAL DECEMBER 2025 – ZERO LAG + ZERO MID-GAME ADS + PERFECT REWARDED -->
+<!-- FINAL DECEMBER 2025 – ZERO LAG + ZERO MID-GAME ADS + PERFECT REWARDED INTERSTITIAL -->
 <script>
-let adsAllowed = false;
+let adsAllowed = false;   // Blocks all ads except when we say so
 
-// UNBREAKABLE AD KILLER – kills any ad during play
+// UNBREAKABLE KILLER – instantly destroys any Monetag ad that tries to appear during play
 new MutationObserver((mutations) => {
     if (adsAllowed) return;
     for (const mutation of mutations) {
@@ -870,28 +870,29 @@ new MutationObserver((mutations) => {
             if (node.nodeType !== 1) continue;
             const html = (node.outerHTML || '').toLowerCase();
             if (html.includes('monetag') || html.includes('gizokraijaw') || html.includes('groleegni')) {
-                node.remove();
+                node.remove();   // Kills the ad instantly
             }
         }
     }
 }).observe(document.documentElement, { childList: true, subtree: true });
 
-// Allow ads only on death screen
+// Allow ads ONLY on death screen (12-second window)
 function allowAdsTemporarily() {
     adsAllowed = true;
     setTimeout(() => adsAllowed = false, 12000);
 }
 
+// Block ads again when new game starts
 function blockAdsForNewGame() {
     adsAllowed = false;
 }
 
-// Load ONLY good ads – NO VIGNETTE EVER
+// Load ONLY the GOOD ads – ZERO lag on first play
 function loadAdsSafely() {
     if (window.adsAlreadyLoaded) return;
     window.adsAlreadyLoaded = true;
 
-    // Monetag main
+    // 1. Monetag main script (needed for everything)
     setTimeout(() => {
         const s = document.createElement('script');
         s.src = 'https://js.monetag.com/ef7c500bcbab5c68feaab4175d9cfc13.js';
@@ -899,7 +900,7 @@ function loadAdsSafely() {
         document.head.appendChild(s);
     }, 4000);
 
-    // Push banner (safe)
+    // 2. Push banner (safe, no lag)
     setTimeout(() => {
         const s = document.createElement('script');
         s.src = 'https://nap5k.com/tag.min.js';
@@ -908,16 +909,17 @@ function loadAdsSafely() {
         document.body.appendChild(s);
     }, 9000);
 
-    // ONLY GOOD INTERSTITIAL (rewarded) – NO VIGNETTE
+    // 3. ONLY YOUR GOOD REWARDED INTERSTITIAL – NO VIGNETTE EVER AGAIN
     setTimeout(() => {
         const s = document.createElement('script');
         s.src = 'https://gizokraijaw.net/vignette.min.js';
-        s.dataset.zone = '10220242';  // ← YOUR GOOD REWARDED ZONE
+        s.dataset.zone = '10220242';   // ← YOUR REWARDED INTERSTITIAL ZONE
         s.async = true;
         document.body.appendChild(s);
     }, 5000);
 }
 
+// Start music + ads after first tap (zero lag)
 function startGameAndAds() {
     if (window.gameStartedForAds) return;
     window.gameStartedForAds = true;
@@ -928,7 +930,7 @@ function startGameAndAds() {
 
 document.addEventListener('touchstart', startGameAndAds, { once: true });
 document.addEventListener('click', startGameAndAds, { once: true });
-	</script>
+</script>
 
 
 

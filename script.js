@@ -1518,7 +1518,7 @@ function resumeGame() {
 }
 
 function endGame() {
-    allowAdsTemporarily();   // ← Allow ad only now
+    allowAdsTemporarily();   // ← keep your blocker logic
 
     handleCanvasPointerUp();
 
@@ -1528,26 +1528,20 @@ function endGame() {
 
     setActiveMenu(MENU_SCORE);
 
-    // Try GOOD rewarded interstitial first
-    if (typeof window.show_10220242 === 'function') {
-        window.show_10220242();
-    }
+    // Show the beautiful green button (50% or 100% chance – your choice)
+    // Remove the 50% line if you want it every time
+    if (Math.random() >= 0.5) return;   // ← delete this line if you want 100%
 
-    // If no ad after 2 seconds → show green button
-    setTimeout(() => {
-        if (!document.querySelector('div[id*="monetag"], iframe')) {
-            showGreenContinueButton();
-        }
-    }, 2000);
+    showRewardedInterstitial();
 }
 
-function showGreenContinueButton() {
+function showRewardedInterstitial() {
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;backdrop-filter:blur(12px);';
     document.body.appendChild(overlay);
 
     const title = document.createElement('h2');
-    title.textContent = 'Watch Ad to Continue?';
+    title.textContent = 'Watch Ad to Continue';
     title.style.cssText = 'color:#00ff9d;font-size:28px;margin-bottom:30px;letter-spacing:6px;';
     overlay.appendChild(title);
 
@@ -1565,17 +1559,36 @@ function showGreenContinueButton() {
 
     btn.onclick = () => {
         remove();
-        if (typeof window.show_10220242 === 'function') window.show_10220242();
-        setTimeout(() => {
-            document.querySelector('.play-again-btn').click();
-            blockAdsForNewGame();
-        }, 6000);
+        btn.disabled = true;
+        btn.textContent = 'Loading...';
+
+        // THIS IS THE OFFICIAL MONETAG REWARDED METHOD
+        if (typeof window.show_10220242 === 'function') {
+            window.show_10220242().then(() => {
+                // SUCCESS – player watched full ad
+                console.log('Ad completed – granting continue');
+                continueGameAfterAd();
+            }).catch(() => {
+                // FAILED – player skipped or no fill
+                console.log('Ad skipped or failed – no reward');
+                // Optional: show "Ad failed" message for 2 sec
+                setTimeout(() => continueGameAfterAd(), 2000); // or don't continue
+            });
+        } else {
+            // Fallback if script not loaded
+            setTimeout(continueGameAfterAd, 3000);
+        }
     };
 
     skip.onclick = () => {
         remove();
         blockAdsForNewGame();
     };
+}
+
+function continueGameAfterAd() {
+    document.querySelector('.play-again-btn').click();  // or your restart function
+    blockAdsForNewGame();
 			}
     
 

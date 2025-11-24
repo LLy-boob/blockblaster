@@ -1517,24 +1517,7 @@ function resumeGame() {
 	isPaused() && setActiveMenu(null);
 }
 
-function endGame() {
-    allowAdsTemporarily();   // allow ads now
 
-    setActiveMenu(MENU_SCORE);
-
-    // Show Monetag interstitial now
-    showInterstitialAtGameOver();
-}
-function showInterstitialAtGameOver() {
-    try {
-        // Monetag interstitial API — works automatically
-        window.showTag && window.showTag();
-    } catch (e) {
-        console.log("Interstitial failed:", e);
-    }
-
-    blockAdsForNewGame(); 
-}
     
     
 

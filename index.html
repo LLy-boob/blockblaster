@@ -853,73 +853,68 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 // 3. Throttle heavy functions
 // const checkCombosThrottled = throttle(checkCombos, 50);
 
-</script>
-
 <script>
-// ===================== MONETAG INTERSTITIAL – FOREVER WORKING VERSION =====================
-let interstitialReady = false;
-let isPreloading = false;
+// ===================== MONETAG IN-APP INTERSTITIAL – OFFICIAL SETUP =====================
+let isInitializing = false;
 
-// make the variable global so your game.js can see it
-window.allowInterstitial = false;
-
-function preloadInterstitial() {
-    if (isPreloading || interstitialReady) return;
-    isPreloading = true;
+// Load the core Monetag script (if not already loaded)
+function loadMonetagCore() {
+    if (isInitializing) return;
+    isInitializing = true;
 
     const s = document.createElement("script");
-    s.dataset.zone = "10203402";
-    s.src = "https://nap5k.com/tag.min.js";
+    s.src = "https://nap5k.com/tag.min.js";  // Your existing script
     s.async = true;
     s.onload = () => {
-        interstitialReady = true;
-        isPreloading = false;
-        console.log("Monetag ready");
+        isInitializing = false;
+        console.log("Monetag core loaded");
     };
     s.onerror = () => {
-        isPreloading = false;
-        setTimeout(preloadInterstitial, 3000);
+        isInitializing = false;
+        setTimeout(loadMonetagCore, 3000);
     };
     document.body.appendChild(s);
 }
 
-// banner (once)
+// Load banner (unchanged)
 function loadBanner() {
     if (window.bannerLoaded) return;
-    const s = document.createElement("script");
-    s.dataset.zone = "10203415";
-    s.src = "https://groleegni.net/vignette.min.js";
-    s.async = true;
-    s.onload = () => window.bannerLoaded = true;
-    document.body.appendChild(s);
+    const b = document.createElement("script");
+    b.dataset.zone = "10203415";
+    b.src = "https://groleegni.net/vignette.min.js";
+    b.async = true;
+    b.onload = () => window.bannerLoaded = true;
+    document.body.appendChild(b);
 }
 
-// first touch/click
-document.addEventListener("click", () => { preloadInterstitial(); loadBanner(); }, { once: true });
-document.addEventListener("touchstart", () => { preloadInterstitial(); loadBanner(); }, { once: true });
+// Init on first interaction (loads core + starts In-App mode)
+function initAds() {
+    loadMonetagCore();
+    loadBanner();
+    // Call this ONCE after core loads to enable auto-interstitials every game over
+    setTimeout(() => {
+        if (typeof window.show_10203402 === "function") {
+            window.show_10203402({
+                type: 'inApp',
+                inAppSettings: {
+                    frequency: 999,   // High = try every game over
+                    capping: 24,      // Max 24/day per user
+                    interval: 1,      // 1 min between ads
+                    timeout: 0        // Show immediately when triggered
+                }
+            });
+            console.log("Monetag In-App interstitials enabled – ready for every game over!");
+        }
+    }, 500);  // Brief delay to ensure script is ready
+}
+document.addEventListener("click", initAds, { once: true });
+document.addEventListener("touchstart", initAds, { once: true });
 
-// this is the function your endGame() calls
-window.showInterstitialIfReady = function() {
-    if (!window.allowInterstitial) return;
-
-    if (interstitialReady && typeof window.showTag === "function") {
-        window.showTag();
-        console.log("Interstitial shown perfectly");
-
-        setTimeout(() => {
-            interstitialReady = false;
-            preloadInterstitial();           // prepare the next one
-        }, 3000);
-    }
-
-    window.allowInterstitial = false;   // lock again until next real death
-};
-
-// keep trying to have one ready
+// Keep the system alive (reload core if needed)
 setInterval(() => {
-    if (!interstitialReady && !isPreloading) preloadInterstitial();
-}, 10000);
-	</script>
+    if (!isInitializing) loadMonetagCore();
+}, 15000);  // Every 15s, but gentle
+</script>
 
 
 

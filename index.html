@@ -856,17 +856,14 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 </script>
 
 
-
-    
-
 <script>
-/* ===================== AD STATE ===================== */
+// ===================== AD STATE =====================
 let interstitialReady = false;
 let interstitialRetries = 0;
 const maxRetries = 5;
 let isPreloading = false;
 
-/* ===================== PRELOAD INTERSTITIAL ===================== */
+// ===================== PRELOAD INTERSTITIAL =====================
 function preloadInterstitial() {
     if (interstitialReady || interstitialRetries >= maxRetries || isPreloading) return;
 
@@ -874,7 +871,6 @@ function preloadInterstitial() {
     interstitialRetries++;
     console.log(`Preloading interstitial, attempt ${interstitialRetries}`);
 
-    // Always create a fresh script element - NEVER reuse or null it
     const script = document.createElement("script");
     script.dataset.zone = "10203402";
     script.src = "https://nap5k.com/tag.min.js";
@@ -884,19 +880,18 @@ function preloadInterstitial() {
         interstitialReady = true;
         interstitialRetries = 0;
         isPreloading = false;
-        console.log("Interstitial preloaded and ready");
+        console.log("Interstitial ready");
     };
 
     script.onerror = () => {
         isPreloading = false;
-        console.log("Preload failed, retrying in 3s...");
         setTimeout(preloadInterstitial, 3000);
     };
 
     document.body.appendChild(script);
 }
 
-/* ===================== LOAD BANNER ===================== */
+// ===================== BANNER =====================
 function loadBanner() {
     if (window.bannerLoaded) return;
     const s = document.createElement("script");
@@ -907,7 +902,7 @@ function loadBanner() {
     document.body.appendChild(s);
 }
 
-/* ===================== INIT ADS ON FIRST TOUCH/CLICK ===================== */
+// ===================== INIT ADS ON FIRST INTERACTION =====================
 function initAds() {
     preloadInterstitial();
     loadBanner();
@@ -915,64 +910,45 @@ function initAds() {
 document.addEventListener("click", initAds, { once: true });
 document.addEventListener("touchstart", initAds, { once: true });
 
-/* ===================== SHOW INTERSTITIAL ===================== */
-function showInterstitialAtGameOver() {
-    if (interstitialReady && typeof window.showTag === "function") {
-        try {
-            window.showTag();  // This shows the full-screen ad
-            console.log("Interstitial shown on game over");
+// ===================== AUTO SHOW AD WHEN SCORE MENU APPEARS =====================
+const originalSetActiveMenu = setActiveMenu;  // Save original function
 
-            // DO NOT delete or null anything here!
-            // Just reset ready state after a delay (ad network handles cleanup)
-            setTimeout(() => {
-                interstitialReady = false;
-                preloadInterstitial(); // start preloading next one
-            }, 3000);
+setActiveMenu = function(menu) {
+    // Call the original function first (shows your menu)
+    originalSetActiveMenu(menu);
 
-        } catch (e) {
-            console.error("Failed to show interstitial:", e);
-            preloadInterstitial();
-        }
-    } else {
-        console.log("Interstitial not ready yet");
-        // still try to preload for next time
-        preloadInterstitial();
+    // If player just died and score menu is shown → trigger ad
+    if (menu === MENU_SCORE || (menu && menu.id === "score")) {
+        setTimeout(() => {
+            if (interstitialReady && typeof window.showTag === "function") {
+                try {
+                    window.showTag();
+                    console.log("Auto interstitial shown on game over");
+                } catch(e) { console.error(e); }
+
+                // Preload next one after 3 seconds
+                setTimeout(() => {
+                    interstitialReady = false;
+                    preloadInterstitial();
+                }, 3000);
+            } else {
+                preloadInterstitial();
+            }
+        }, 900); // 900ms = menu appears → then ad (feels perfect)
     }
-}
+};
 
-/* ===================== END GAME - THIS MUST BE CALLED FROM YOUR GAME ===================== */
-function endGame() {
-    console.log("endGame() called - stopping game...");
-
-    // Stop your actual game loop (adjust variable names to match your real game)
-    if (typeof gameRunning !== "undefined") gameRunning = false;
-    if (typeof gameInterval !== "undefined") clearInterval(gameInterval);
-    if (typeof cancelAnimationFrame !== "undefined" && typeof gameLoopId !== "undefined") {
-        cancelAnimationFrame(gameLoopId);
-    }
-
-    // Optional: hide game canvas
-    const canvas = document.getElementById("gameCanvas");
-    if (canvas) canvas.style.display = "none";
-
-    // Show score menu (make sure this function is fast and exists)
-    if (typeof setActiveMenu === "function" && typeof MENU_SCORE !== "undefined") {
-        setActiveMenu(MENU_SCORE);
-    }
-
-    // Show ad only AFTER menu is visible (800–1200ms works best)
-    setTimeout(showInterstitialAtGameOver, 1000);
-
-    console.log("Game fully ended + ad triggered");
-}
-
-/* ===================== KEEP TRYING TO PRELOAD ===================== */
+// ===================== KEEP PRELOADING =====================
 setInterval(() => {
-    if (!interstitialReady && !isPreloading) {
-        preloadInterstitial();
-    }
+    if (!interstitialReady && !isPreloading) preloadInterstitial();
 }, 8000);
-</script>
+	</script>
+    
+
+
+            
+	
+            
 
 
 	<!-- GAME SCRIPT -->

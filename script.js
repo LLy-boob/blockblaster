@@ -1517,13 +1517,18 @@ function resumeGame() {
 	isPaused() && setActiveMenu(null);
 }
 
-let allowInterstitial = false;  // Your gate (optional now, but keep for safety)
+let allowInterstitial = false;  // Your safety gate
 
-function endGame() {
-    allowInterstitial = true;              // Unlock (respects Monetag's rules)
-    setActiveMenu(MENU_SCORE);             // Show score instantly
-    // No more manual showInterstitialIfReady() — In-App mode auto-triggers here!
-    // Optional: If you want a tiny delay for smoother feel, add setTimeout(setActiveMenu(MENU_SCORE), 0);
+function endGame() {  // Works for play/casual modes
+    allowInterstitial = true;
+    setActiveMenu(MENU_SCORE);  // Instant score (natural pause)
+
+    setTimeout(() => {
+        if (allowInterstitial) {
+            window.triggerInterstitial();  // Frequency-checked show
+            allowInterstitial = false;
+        }
+    }, 800);  // Delay avoids disruption (their tip)
 }
     
     

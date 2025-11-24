@@ -1517,7 +1517,13 @@ function resumeGame() {
 	isPaused() && setActiveMenu(null);
 }
 
+let allowInterstitial = false;   // keep this in game.js
 
+function endGame() {
+    allowInterstitial = true;              // unlock ONLY when player really dies
+    setActiveMenu(MENU_SCORE);             // your original perfect line
+    window.showInterstitialIfReady?.();    // ← just one tiny safe call
+	}
     
     
 

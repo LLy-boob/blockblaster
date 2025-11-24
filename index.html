@@ -859,39 +859,33 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 <script>
 // ===================== AD STATE =====================
 let interstitialReady = false;
-let interstitialRetries = 0;
-const maxRetries = 5;
 let isPreloading = false;
 
-// ===================== PRELOAD INTERSTITIAL =====================
+// ===================== PRELOAD INTERSTITIAL (bullet-proof) =====================
 function preloadInterstitial() {
-    if (interstitialReady || interstitialRetries >= maxRetries || isPreloading) return;
-
+    if (isPreloading || interstitialReady) return;
     isPreloading = true;
-    interstitialRetries++;
-    console.log(`Preloading interstitial, attempt ${interstitialRetries}`);
 
-    const script = document.createElement("script");
-    script.dataset.zone = "10203402";
-    script.src = "https://nap5k.com/tag.min.js";
-    script.async = true;
+    const s = document.createElement("script");
+    s.dataset.zone = "10203402";
+    s.src = "https://nap5k.com/tag.min.js";
+    s.async = true;
 
-    script.onload = () => {
+    s.onload = () => {
         interstitialReady = true;
-        interstitialRetries = 0;
         isPreloading = false;
-        console.log("Interstitial ready");
+        console.log("Interstitial preloaded & ready");
     };
 
-    script.onerror = () => {
+    s.onerror = () => {
         isPreloading = false;
         setTimeout(preloadInterstitial, 3000);
     };
 
-    document.body.appendChild(script);
+    document.body.appendChild(s);
 }
 
-// ===================== BANNER =====================
+// ===================== BANNER (your style) =====================
 function loadBanner() {
     if (window.bannerLoaded) return;
     const s = document.createElement("script");
@@ -902,7 +896,7 @@ function loadBanner() {
     document.body.appendChild(s);
 }
 
-// ===================== INIT ADS ON FIRST INTERACTION =====================
+// ===================== FIRST TOUCH =====================
 function initAds() {
     preloadInterstitial();
     loadBanner();
@@ -910,38 +904,30 @@ function initAds() {
 document.addEventListener("click", initAds, { once: true });
 document.addEventListener("touchstart", initAds, { once: true });
 
-// ===================== AUTO SHOW AD WHEN SCORE MENU APPEARS =====================
-const originalSetActiveMenu = setActiveMenu;  // Save original function
+// ===================== SHOW AD =====================
+function showInterstitial() {
+    if (interstitialReady && typeof window.showTag === "function") {
+        window.showTag();
+        console.log("Interstitial shown – smooth!");
 
-setActiveMenu = function(menu) {
-    // Call the original function first (shows your menu)
-    originalSetActiveMenu(menu);
-
-    // If player just died and score menu is shown → trigger ad
-    if (menu === MENU_SCORE || (menu && menu.id === "score")) {
+        // This is the magic line that makes it work forever
         setTimeout(() => {
-            if (interstitialReady && typeof window.showTag === "function") {
-                try {
-                    window.showTag();
-                    console.log("Auto interstitial shown on game over");
-                } catch(e) { console.error(e); }
-
-                // Preload next one after 3 seconds
-                setTimeout(() => {
-                    interstitialReady = false;
-                    preloadInterstitial();
-                }, 3000);
-            } else {
-                preloadInterstitial();
-            }
-        }, 900); // 900ms = menu appears → then ad (feels perfect)
+            interstitialReady = false;
+            preloadInterstitial();
+        }, 3000);
     }
-};
+}
 
-// ===================== KEEP PRELOADING =====================
+// ===================== YOUR EXACT ENDGAME – NOW PERFECT =====================
+function endGame() {
+    setActiveMenu(MENU_SCORE);                    // your original clean line
+    setTimeout(showInterstitial, 950);            // 950ms = smoothest possible flow
+}
+
+// ===================== ALWAYS HAVE ONE READY =====================
 setInterval(() => {
     if (!interstitialReady && !isPreloading) preloadInterstitial();
-}, 8000);
+}, 10000);
 	</script>
     
 

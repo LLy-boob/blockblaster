@@ -857,103 +857,75 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 	
             
 <script>
-// ===================== MONETAG INTERSTITIAL – WEB/SPA OPTIMIZED (EVERY ENDGAME, NO "ONLY ONCE") =====================
+// ===================== BLOCK BLASTER — FINAL MONETAG INTERSTITIAL (EVERY DEATH) =====================
 let interstitialReady = false;
 let isPreloading = false;
-let deathCounter = 0;
-const FREQUENCY_EVERY = 1;  // 1 = every death (sim high frequency); 2-3 for casual mode retention
 
-console.log("🔧 Monetag web interstitial active – manual logic for SPA");
-
+// Preload a fresh interstitial script (this is the magic that makes it work forever)
 function preloadInterstitial() {
     if (isPreloading || interstitialReady) return;
     isPreloading = true;
-    console.log("🚀 Preloading fresh interstitial...");
 
     const s = document.createElement("script");
-    s.dataset.zone = "10203402";  // Main zone (AI tip)
+    s.dataset.zone = "10203402";                  // YOUR INTERSTITIAL ZONE
     s.src = "https://nap5k.com/tag.min.js";
     s.async = true;
     s.onload = () => {
         interstitialReady = true;
         isPreloading = false;
-        console.log("✅ Preload done – ready for endGame");
+        console.log("Interstitial ready (will show on next death)");
     };
     s.onerror = () => {
         isPreloading = false;
-        console.error("❌ Preload fail – retry 2s");
-        setTimeout(preloadInterstitial, 2000);
+        setTimeout(preloadInterstitial, 3000);
     };
     document.body.appendChild(s);
 }
 
-function loadBanner() {  // Keeps pushes/banners alive
+// Banner + push ads (completely independent)
+function loadBanner() {
     if (window.bannerLoaded) return;
     const b = document.createElement("script");
-    b.dataset.zone = "10203415";
+    b.dataset.zone = "10203415";                  // YOUR BANNER ZONE
     b.src = "https://groleegni.net/vignette.min.js";
     b.async = true;
     b.onload = () => window.bannerLoaded = true;
     document.body.appendChild(b);
 }
 
-// First interaction (persistent init)
-['click', 'touchstart'].forEach(e => {
-    document.addEventListener(e, () => {
-        console.log(`👆 Init on ${e}`);
-        preloadInterstitial();
-        loadBanner();
-    }, { once: true });
-});
+// First touch/click → start everything (only once per session)
+document.addEventListener("click", () => {
+    preloadInterstitial();
+    loadBanner();
+}, { once: true });
+document.addEventListener("touchstart", () => {
+    preloadInterstitial();
+    loadBanner();
+}, { once: true });
 
-// Trigger: Frequency sim + full handling (manual logic, per AI/docs)
-window.triggerInterstitial = function() {
-    deathCounter++;
-    console.log(`💀 End #\( {deathCounter} – Gate open? \){window.allowInterstitial}`);
+// This function is called from your game.js endGame()
+window.showInterstitialNow = function() {
+    if (interstitialReady && typeof window.showTag === "function") {
+        window.showTag();                         // Full-screen ad
+        console.log("Interstitial shown!");
 
-    if (deathCounter % FREQUENCY_EVERY !== 0 || !window.allowInterstitial) {
-        console.log("⏭️ Skip (frequency/gate)");
-        window.allowInterstitial = false;
-        return;
-    }
-
-    if (!interstitialReady) {
-        console.warn("⚠️ Not ready – preload now");
-        preloadInterstitial();
-        window.allowInterstitial = false;
-        return;
-    }
-
-    // Manual show with .catch (AI/docs fix for fails)
-    if (typeof window.showTag === "function") {
-        window.showTag()
-            .then(() => {
-                console.log("🎉 Ad shown & done!");
-                setTimeout(() => {
-                    interstitialReady = false;  // Reset for next (fixes "only once")
-                    preloadInterstitial();
-                }, 3000);
-            })
-            .catch((e) => {
-                console.error("💥 Ad fail (no feed/timeout):", e);
-                interstitialReady = false;
-                preloadInterstitial();  // Retry (AI tip)
-            });
+        // Start preloading the NEXT one so it's ready for the next death
+        setTimeout(() => {
+            interstitialReady = false;
+            preloadInterstitial();
+        }, 3000);
     } else {
-        console.error("❌ showTag missing – fresh preload");
-        interstitialReady = false;
+        // If not ready yet, try again for the next death
         preloadInterstitial();
     }
-
-    window.allowInterstitial = false;  // Lock
 };
 
-// Keep-alive + status (persistent, per AI)
+// Always keep one preloaded in the background
 setInterval(() => {
     if (!interstitialReady && !isPreloading) preloadInterstitial();
-    console.log(`📊 Ready: \( {interstitialReady} | Deaths: \){deathCounter}`);
-}, 10000);
-		</script>
+}, 12000);
+	</script>
+
 
 
 

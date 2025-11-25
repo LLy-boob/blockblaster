@@ -1519,19 +1519,18 @@ function resumeGame() {
 
 let allowInterstitial = false;
 
-function endGame() {  // Works for play/casual modes
+function endGame() {
     allowInterstitial = true;
-    console.log("🎮 endGame – score + unlock");
-    setActiveMenu(MENU_SCORE);  // Natural pause (AI tip)
+    setActiveMenu(MENU_SCORE);                    // Score screen first
 
-    setTimeout(() => {  // 800ms = smooth, no disruption (research rec)
+    // 800 ms = perfect natural pause (score appears → then ad)
+    setTimeout(() => {
         if (allowInterstitial) {
-            console.log("📡 Trigger ad");
-            window.triggerInterstitial();
+            window.showInterstitialNow?.();
+            allowInterstitial = false;
         }
     }, 800);
 }
-    
 
 
     

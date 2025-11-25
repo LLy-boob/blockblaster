@@ -670,149 +670,102 @@ function hidePopup() {
   <div id="shareBtn">…</div>
   <!-- etc. keep everything you already have -->
 
-<script src="https://unpkg.com/detect-gpu@5.0.38/dist/detect-gpu.min.js"></script>
-<script>
-  (async () => {
-    // === 1. Detect GPU tier safely with fallback ===
-    let tier = 2;        // default: medium (safe fallback)
-    let isMobile = /Mobi|Android|iPhone|iPad|iPod/.test(navigator.userAgent);
-    
-    try {
-      const { getGPUTier } = await import('https://unpkg.com/detect-gpu@5.0.38/dist/detect-gpu.min.js');
-      const result = await getGPUTier({
-        mobileBenchmarkPercentile: 50,
-        desktopBenchmarkPercentile: 50,
-        // Add timeouts to prevent hanging on weird devices
-        benchmarksTimeout: 5000,
-        glContext: document.createElement('canvas').getContext('webgl') || undefined
+
+  <!-- ===================================================== -->
+  <!--         MAGIC PERFORMANCE AUTO-ADAPTER ENGINE         -->
+  <!-- ===================================================== -->
+  <script src="https://unpkg.com/detect-gpu@5.0.38/dist/detect-gpu.min.js"></script>
+  <script>
+    // This whole block runs once at startup and decides the quality level
+    (async () => {
+      const gpu = new GpuJsDetector();
+      const result = await gpu.getGPUTier({
+        mobileBenchmarkPercentile: 50,   // realistic for phones
+        desktopBenchmarkPercentile: 50
       });
+
+      // tier goes from 0 (very weak) → 3 (high-end)
+      const tier = result.tier; // 0, 1, 2 or 3 (or "WEBGL_UNSUPPORTED")
       
-      tier = result.tier; // 0, 1, 2, 3
-      if (typeof tier !== 'number' || tier < 0 || tier > 3) tier = 2; // sanitize
-    } catch (err) {
-      console.warn("GPU detection failed, using safe defaults:", err);
-      // Keep default tier = 2 (medium)
-    }
+      let scale = 1.0;
+      let targetFps = 60;
+      let lowQualityMode = false;
 
-    // === 2. Decide performance settings based on tier ===
-    const settings = {
-      scale: 1.0,
-      targetFps: 60,
-      lowQualityMode: false,
-      forceLowPrecision: false
-    };
+      if (tier <= 1) {               // very low-end phones (most Android < $200)
+        scale = 0.65;
+        targetFps = 30;
+        lowQualityMode = true;
+      } else if (tier === 2) {       // medium phones / old iPads
+        scale = 0.85;
+        targetFps = 45;
+      } else if (tier >= 3) {        // good phones, all PCs
+        scale = 1.0;
+        targetFps = 60;
+      }
 
-    if (tier === 0) {
-      // Trash-tier (old Androids, feature phones)
-      settings.scale = 0.6;
-      settings.targetFps = 30;
-      settings.lowQualityMode = true;
-      settings.forceLowPrecision = true;
-    } else if (tier === 1) {
-      // Low-end (budget Androids, old iPads)
-      settings.scale = 0.75;
-      settings.targetFps = 40;
-      settings.lowQualityMode = true;
-      settings.forceLowPrecision = true;
-    } else if (tier === 2) {
-      // Mid-range (most phones 2020+, older PCs)
-      settings.scale = isMobile ? 0.9 : 1.0;
-      settings.targetFps = 50;
-    } else if (tier === 3) {
-      // High-end (flagships, gaming phones, modern PCs)
-      settings.scale = 1.0;
-      settings.targetFps = 60;
-    }
+      // Expose to your game code (script.js can read these if you ever want)
+      window.PERF_TIER = tier;
+      window.PERF_SCALE = scale;
+      window.PERF_FPS = targetFps;
+      window.LOW_QUALITY = lowQualityMode;
 
-    // Expose globally for your game (script.js can read these)
-    window.PERF_TIER = tier;
-    window.PERF_SCALE = settings.scale;
-    window.PERF_FPS = settings.targetFps;
-    window.LOW_QUALITY = settings.lowQualityMode;
+      // 1. Force lower resolution (the #1 fix for laggy WebGL on mobile)
+      const canvas = document.getElementById('c');
+      function resizeCanvas() {
+        const dpr = window.devicePixelRatio || 1;
+        const actualScale = lowQualityMode ? scale : Math.min(scale, 1);
+        
+        canvas.width  = canvas.clientWidth  * dpr * actualScale;
+        canvas.height = canvas.clientHeight * dpr * actualScale;
 
-    console.log(`Block Blaster → GPU Tier \( {tier} | Scale: \){settings.scale.toFixed(2)} | FPS: ${settings.targetFps}`);
+        // CSS size stays full screen (sharp on high-dpi, pixelated but fast on low)
+        canvas.style.width  = '100%';
+        canvas.style.height = '100%';
+      }
 
-    // === 3. Apply canvas resolution scaling (THE #1 mobile perf win) ===
-    const canvas = document.getElementById('c');
-    if (!canvas) {
-      console.error("Canvas #c not found!");
-      return;
-    }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
 
-    const resizeCanvas = () => {
-      const dpr = window.devicePixelRatio || 1;
-      const scale = settings.lowQualityMode ? settings.scale : Math.min(settings.scale, 1.0);
-
-      canvas.width  = Math.floor(canvas.clientWidth  * dpr * scale);
-      canvas.height = Math.floor(canvas.clientHeight * dpr * scale);
-
-      // Keep CSS size full (crisp on Retina, fast on low-end)
-      canvas.style.width  = '100%';
-      canvas.style.height = '100%';
-
-      // Tell your game that resolution changed (optional, many engines need this)
-      if (window.onGameResize) window.onGameResize();
-      canvas.dispatchEvent(new Event('resize'));
-    };
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
-    window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 200));
-
-    // === 4. Safe & working FPS limiter (works on ALL browsers including iOS) ===
-    let lastTime = 0;
-    const frameInterval = 1000 / settings.targetFps;
-
-    const cappedRAF = (callback) => {
-      return requestAnimationFrame((now) => {
-        if (!lastTime) lastTime = now;
-        const elapsed = now - lastTime;
-
-        if (elapsed >= frameInterval) {
-          lastTime = now - (elapsed % frameInterval);
-          callback(now);
-        } else {
-          cappedRAF(callback);
-        }
-      });
-    };
-
-    // Only override if we're actually limiting FPS
-    if (settings.targetFps < 60) {
-      window.requestAnimationFrame = cappedRAF;
-    }
-
-    // === 5. Kill 300ms tap delay + make touch instant ===
-    canvas.style.touchAction = 'manipulation'; // Best modern value
-    canvas.style.touchAction = 'none'; // Force override
-
-    // Prevent zoom/scroll on touch (without breaking passive warnings)
-    canvas.addEventListener('touchstart', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
-    canvas.addEventListener('touchmove',  e => e.preventDefault(), { passive: false });
-
-    // === 6. Force lowp precision in shaders on trash GPUs (optional but huge win) ===
-    if (settings.forceLowPrecision) {
-      const origGetContext = HTMLCanvasElement.prototype.getContext;
-      HTMLCanvasElement.prototype.getContext = function(type, attrs = {}) {
-        if (type.indexOf('webgl') !== -1) {
-          attrs.precisionHint = 'low';           // custom flag your shaders can read
-          attrs.preferLowPowerToHighPerformance = true;
-          attrs.powerPreference = 'low-power';
-          attrs.alpha = false;                   // saves bandwidth
-          attrs.antialias = false;
-          attrs.desynchronized = true;
-        }
-        return origGetContext.call(this, type, attrs);
+      // 2. Cap FPS on low-end devices (prevents burning CPU/GPU)
+      let lastFrameTime = 0;
+      const originalRaf = window.requestAnimationFrame;
+      window.requestAnimationFrame = function(callback) {
+        return originalRaf(function(time) {
+          if (!lastFrameTime) lastFrameTime = time;
+          const delta = time - lastFrameTime;
+          const interval = 1000 / targetFps;
+          
+          if (delta > interval) {
+            lastFrameTime = time - (delta % interval);
+            callback(time);
+          } else {
+            originalRaf(arguments.callee);
+          }
+        });
       };
-    }
 
-  })().catch(err => {
-    console.error("Performance booster failed (game still works):", err);
-  });
+      // 3. Remove 300 ms tap delay + make touch super responsive
+      canvas.style.touchAction = 'none';
+      ['touchstart','touchmove','touchend','touchcancel'].forEach(ev => {
+        canvas.addEventListener(ev, e => e.preventDefault(), { passive: false });
+      });
+
+      // 4. Optional: force lower precision in shaders on trash GPUs
+      // (many raw WebGL games use highp everywhere → death on Mali/Adreno 5xx)
+      if (lowQualityMode) {
+        const originalGetContext = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function(type, attributes) {
+          if (type.includes('webgl')) {
+            attributes = attributes || {};
+            attributes.precisionHint = 'low'; // custom flag we add
+          }
+          return originalGetContext.call(this, type, attributes);
+        };
+      }
+
+      console.log(`Block Blaster → Device tier \( {tier} → Scale: \){scale.toFixed(2)}, FPS cap: ${targetFps}`);
+    })();
 	</script>
-
-
-
 	
 	<script>
 // ===================== Performance Helper for Swipe Match-3 =====================

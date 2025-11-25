@@ -1517,27 +1517,10 @@ function resumeGame() {
 	isPaused() && setActiveMenu(null);
 }
 
-// Your existing end game logic modified to always show interstitial
 function endGame() {
     setActiveMenu(MENU_SCORE);
-
-    // Delay slightly before showing interstitial ad for better UX
-    setTimeout(() => {
-        const shown = window.showInterstitialNow();
-        if (!shown) {
-            // Optionally fallback or log if ad was missed this time
-            console.warn("Interstitial missed on this game end.");
-        }
-    }, 800);
+    setTimeout(() => window.showInterstitialNow?.(), 700); // Every death = ad
 }
-
-// Keep preloading if idle
-setInterval(() => {
-    if (!interstitialReady && !isPreloading) {
-        preloadInterstitial();
-    }
-}, 12000);
-
 
     
 

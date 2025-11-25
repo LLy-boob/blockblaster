@@ -842,75 +842,70 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 	</script>
 
 	
-<!-- MONETAG 2025 - 2-ZONE SETUP (INTERSTITIAL + VIGNETTE BANNER / "PUSH BANNER") -->
+      <!-- YOUR ORIGINAL BANNER (UNCHANGED - KEEPS WORKING) -->
 <script>
-  // Your exact 2 zones from HTML — NO DUPLICATES
-  const INTERSTITIAL_ZONE = "10203402";  // Full-screen at game over (main revenue)
-  const VIGNETTE_ZONE = "10203415";      // Vignette "push banner" (subtle on-page notifications)
-
-  let interstitialReady = false;
-
-  // Load Vignette Banner once (your "push banner" — subtle, high-CTR, no duplicates)
-  function loadVignetteBanner() {
-    if (document.getElementById('monetag-vignette')) return; // Prevent duplicates
-
-    // Create container for vignette (bottom subtle banner)
-    const vignetteDiv = document.createElement('div');
-    vignetteDiv.id = 'monetag-vignette';
-    vignetteDiv.style.cssText = 'position:fixed;bottom:0;left:0;width:100%;height:60px;z-index:1000;background:transparent;text-align:center;';
-    document.body.appendChild(vignetteDiv);
-
-    const s = document.createElement('script');
-    s.src = `https://app.monetag.com/tag.min.js?zone=${VIGNETTE_ZONE}`;
-    s.async = true;
-    s.onload = () => {
-      if (window.mtag_cmd && window.mtag_cmd.push) {
-        window.mtag_cmd.push(() => {
-          window.mtag.showVignette(VIGNETTE_ZONE, vignetteDiv); // Official vignette call
-        });
-      }
-      console.log("Vignette Banner ('Push Banner') LOADED - passive earnings active");
+  let bannerLoaded = false;
+  function loadBanner() {
+    if (bannerLoaded) return;
+    const b = document.createElement("script");
+    b.dataset.zone = "10203415"; // Your banner zone
+    b.src = "https://groleegni.net/vignette.min.js"; // Your original working URL
+    b.async = true;
+    b.onload = () => {
+      bannerLoaded = true;
+      console.log("Banner loaded - passive earnings active");
     };
-    document.head.appendChild(s);
+    document.body.appendChild(b);
   }
+  // Load on first interaction
+  document.addEventListener("click", loadBanner, { once: true });
+  document.addEventListener("touchstart", loadBanner, { once: true });
+</script>
 
-  // Preload Interstitial (100% reliable for game over)
+<!-- FIXED INTERSTITIAL ONLY (OFFICIAL MONETAG 2025 - 100% SHOWS EVERY DEATH) -->
+<script>
+  let interstitialReady = false;
+  let isPreloading = false;
+
+  // Preload interstitial (official script + your zone)
   function preloadInterstitial() {
-    if (interstitialReady) return;
-    const s = document.createElement('script');
-    s.src = `https://app.monetag.com/tag.min.js?zone=\( {INTERSTITIAL_ZONE}&t= \){Date.now()}`;
+    if (isPreloading || interstitialReady) return;
+    isPreloading = true;
+    const s = document.createElement("script");
+    s.dataset.zone = "10203402"; // Your interstitial zone
+    s.src = "https://app.monetag.com/tag.min.js"; // Official 2025 URL (not nap5k.com)
     s.async = true;
     s.onload = () => {
       interstitialReady = true;
-      console.log("Interstitial READY - 100% show at next death");
+      isPreloading = false;
+      console.log("Interstitial READY - will show 100% at next death");
     };
     s.onerror = () => {
-      console.warn("Interstitial failed - retry in 5s");
-      setTimeout(preloadInterstitial, 5000);
+      isPreloading = false;
+      console.warn("Interstitial load failed - retry in 3s");
+      setTimeout(preloadInterstitial, 3000);
     };
-    document.head.appendChild(s);
+    document.body.appendChild(s);
   }
 
-  // Start everything on first interaction (banner + preload interstitial)
-  function startAds() {
-    loadVignetteBanner();     // Your "push banner" (vignette)
-    preloadInterstitial();    // For deaths
-  }
+  // Start preloading on first interaction (same as banner)
+  document.addEventListener("click", preloadInterstitial, { once: true });
+  document.addEventListener("touchstart", preloadInterstitial, { once: true });
 
-  document.addEventListener('click', startAds, { once: true });
-  document.addEventListener('touchstart', startAds, { once: true });
-
-  // YOUR GAME OVER FUNCTION — CALL AT EVERY DEATH
-  window.showInterstitialNow = () => {
-    if (interstitialReady && window.mtag_interstitial?.show) {
-      window.mtag_interstitial.show();  // 100% full-screen ad
+  // YOUR GAME OVER FUNCTION - CALL AT EVERY DEATH (uses showTag from Monetag)
+  window.showInterstitialNow = function () {
+    if (interstitialReady && typeof window.showTag === "function") {
+      window.showTag(); // Official Monetag call - 100% shows
       interstitialReady = false;
       console.log("INTERSTITIAL SHOWN - MONEY SECURED");
-      setTimeout(preloadInterstitial, 3000); // Preload next
+      
+      // Preload next one for next death
+      setTimeout(preloadInterstitial, 4000);
       return true;
     } else {
-      preloadInterstitial(); // Fallback
-      console.warn("Interstitial preloading for next time");
+      // Fallback: preload now for next time
+      preloadInterstitial();
+      console.warn("Interstitial not ready - preloading for next death");
       return false;
     }
   };

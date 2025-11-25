@@ -1519,7 +1519,11 @@ function resumeGame() {
 
 function endGame() {
     setActiveMenu(MENU_SCORE);
-    setTimeout(() => window.showInterstitialNow?.(), 700); // Every death = ad
+
+    // Show interstitial EVERY death (small delay for smooth UX)
+    setTimeout(() => {
+        window.showInterstitialNow();
+    }, 800);
 }
 
     

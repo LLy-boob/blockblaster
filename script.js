@@ -1517,14 +1517,59 @@ function resumeGame() {
 	isPaused() && setActiveMenu(null);
 }
 
-function endGame() {
-    setActiveMenu(MENU_SCORE);
+// ============================================================================
+// GUARANTEED INTERSTITIAL AT EVERY GAME OVER - MAXIMIZE REVENUE
+// ============================================================================
 
-    // Show interstitial EVERY death (small delay for smooth UX)
+function endGame() {
+    console.log("🔄 Game Over - Preparing to show interstitial ad...");
+    
+    // First show game over menu
+    setActiveMenu(MENU_SCORE);
+    
+    // Update score display
+    const finalScoreNode = $('.final-score-lbl');
+    const highScoreNode = $('.high-score-lbl');
+    const highScore = getHighScore();
+    
+    if (finalScoreNode) finalScoreNode.textContent = formatNumber(state.game.score);
+    if (highScoreNode) {
+        if (isNewHighScore()) {
+            highScoreNode.textContent = 'New High Score!';
+            setHighScore(state.game.score);
+        } else {
+            highScoreNode.textContent = `High Score: ${formatNumber(highScore)}`;
+        }
+    }
+    
+    // GUARANTEED INTERSTITIAL SHOW - MULTIPLE ATTEMPTS
+    let interstitialShown = false;
+    
+    // Attempt 1: Show immediately
+    if (window.showInterstitialNow) {
+        interstitialShown = window.showInterstitialNow();
+    }
+    
+    // Attempt 2: If first attempt failed, try again after 1 second
+    if (!interstitialShown) {
+        setTimeout(() => {
+            console.log("🔄 Retrying interstitial display...");
+            if (window.showInterstitialNow) {
+                window.showInterstitialNow();
+            }
+        }, 1000);
+    }
+    
+    // Attempt 3: Final attempt after 3 seconds (in case of slow loading)
     setTimeout(() => {
-        window.showInterstitialNow();
-    }, 800);
-}
+        if (!interstitialShown && window.showInterstitialNow) {
+            console.log("🔄 Final attempt to show interstitial...");
+            window.showInterstitialNow();
+        }
+    }, 3000);
+    
+    console.log("💰 Ad revenue system activated for this game over");
+		}
 
     
 

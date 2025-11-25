@@ -296,18 +296,7 @@ window.startBlockBlasterGame = hideBlockBlasterLoader;
         showUnmuteHint();
       });
 
-    // ---- Load PropellerAds BANNER only once after first interaction ----
-    if (!adLoaded) {
-      adLoaded = true;
-      const zoneId = 'YOUR_ZONE_ID';  // ← REPLACE THIS
-      const script = document.createElement('script');
-      script.async = true;
-      script.src = `https://propellerads.com/api/v1/pub/zone/${zoneId}`;
-      script.onload = () => {
-        window.propellerAds?.renderBanner('propellerBanner');
-      };
-      document.head.appendChild(script);
-    }
+    
 
     // Remove listeners
     document.removeEventListener('touchstart', startGame);

@@ -671,174 +671,156 @@ function hidePopup() {
   <!-- etc. keep everything you already have -->
 
 
-  <!-- ===================================================== -->
-  <!--         MAGIC PERFORMANCE AUTO-ADAPTER ENGINE         -->
-  <!-- ===================================================== -->
-  <script src="https://unpkg.com/detect-gpu@5.0.38/dist/detect-gpu.min.js"></script>
-  <script>
-    // This whole block runs once at startup and decides the quality level
-    (async () => {
-      const gpu = new GpuJsDetector();
-      const result = await gpu.getGPUTier({
-        mobileBenchmarkPercentile: 50,   // realistic for phones
-        desktopBenchmarkPercentile: 50
-      });
+  
+<!-- ===================================================== -->
+<!--         ULTRA PERFORMANCE OPTIMIZER ENGINE           -->
+<!-- ===================================================== -->
+<script>
+(async function UltraPerformanceBoost() {
+    console.log('🚀 Starting Ultra Performance Optimizer...');
+    
+    // 1. IMMEDIATE PERFORMANCE BOOSTS (Run First)
+    document.body.style.transform = 'translateZ(0)';
+    document.body.style.willChange = 'transform';
+    document.documentElement.style.scrollBehavior = 'auto';
+    document.body.style.background = '#000';
 
-      // tier goes from 0 (very weak) → 3 (high-end)
-      const tier = result.tier; // 0, 1, 2 or 3 (or "WEBGL_UNSUPPORTED")
-      
-      let scale = 1.0;
-      let targetFps = 60;
-      let lowQualityMode = false;
-
-      if (tier <= 1) {               // very low-end phones (most Android < $200)
-        scale = 0.65;
-        targetFps = 30;
-        lowQualityMode = true;
-      } else if (tier === 2) {       // medium phones / old iPads
-        scale = 0.85;
-        targetFps = 45;
-      } else if (tier >= 3) {        // good phones, all PCs
-        scale = 1.0;
-        targetFps = 60;
-      }
-
-      // Expose to your game code (script.js can read these if you ever want)
-      window.PERF_TIER = tier;
-      window.PERF_SCALE = scale;
-      window.PERF_FPS = targetFps;
-      window.LOW_QUALITY = lowQualityMode;
-
-      // 1. Force lower resolution (the #1 fix for laggy WebGL on mobile)
-      const canvas = document.getElementById('c');
-      function resizeCanvas() {
-        const dpr = window.devicePixelRatio || 1;
-        const actualScale = lowQualityMode ? scale : Math.min(scale, 1);
+    // 2. SMART QUALITY ADAPTATION
+    const canvas = document.getElementById('c');
+    if (!canvas) return;
+    
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isLowEnd = (navigator.hardwareConcurrency || 4) <= 4 && isMobile;
+    const hasSlowGPU = !window.WebGLRenderingContext || !canvas.getContext('webgl');
+    
+    const settings = {
+        scale: isLowEnd ? 0.5 : (isMobile ? 0.7 : 1.0),
+        fps: isLowEnd ? 30 : (isMobile ? 45 : 60),
+        shadows: !isLowEnd,
+        particles: isLowEnd ? 50 : 150,
+        antialias: !isLowEnd
+    };
+    
+    console.log(`📱 Device: ${isMobile ? 'Mobile' : 'Desktop'}, Quality: ${isLowEnd ? 'Low' : 'High'}`);
+    
+    // 3. CANVAS OPTIMIZATION
+    function optimizeCanvas() {
+        const dpr = Math.min(window.devicePixelRatio || 1, isLowEnd ? 1 : 2);
+        const rect = canvas.getBoundingClientRect();
         
-        canvas.width  = canvas.clientWidth  * dpr * actualScale;
-        canvas.height = canvas.clientHeight * dpr * actualScale;
-
-        // CSS size stays full screen (sharp on high-dpi, pixelated but fast on low)
-        canvas.style.width  = '100%';
+        canvas.width = rect.width * dpr * settings.scale;
+        canvas.height = rect.height * dpr * settings.scale;
+        
+        canvas.style.width = '100%';
         canvas.style.height = '100%';
-      }
-
-      resizeCanvas();
-      window.addEventListener('resize', resizeCanvas);
-
-      // 2. Cap FPS on low-end devices (prevents burning CPU/GPU)
-      let lastFrameTime = 0;
-      const originalRaf = window.requestAnimationFrame;
-      window.requestAnimationFrame = function(callback) {
-        return originalRaf(function(time) {
-          if (!lastFrameTime) lastFrameTime = time;
-          const delta = time - lastFrameTime;
-          const interval = 1000 / targetFps;
-          
-          if (delta > interval) {
-            lastFrameTime = time - (delta % interval);
-            callback(time);
-          } else {
-            originalRaf(arguments.callee);
-          }
+        canvas.style.imageRendering = isLowEnd ? 'pixelated' : 'auto';
+        
+        const gl = canvas.getContext('webgl', {
+            alpha: false,
+            depth: false,
+            antialias: settings.antialias,
+            powerPreference: isLowEnd ? 'low-power' : 'high-performance',
+            failIfMajorPerformanceCaveat: true
         });
-      };
-
-      // 3. Remove 300 ms tap delay + make touch super responsive
-      canvas.style.touchAction = 'none';
-      ['touchstart','touchmove','touchend','touchcancel'].forEach(ev => {
-        canvas.addEventListener(ev, e => e.preventDefault(), { passive: false });
-      });
-
-      // 4. Optional: force lower precision in shaders on trash GPUs
-      // (many raw WebGL games use highp everywhere → death on Mali/Adreno 5xx)
-      if (lowQualityMode) {
-        const originalGetContext = HTMLCanvasElement.prototype.getContext;
-        HTMLCanvasElement.prototype.getContext = function(type, attributes) {
-          if (type.includes('webgl')) {
-            attributes = attributes || {};
-            attributes.precisionHint = 'low'; // custom flag we add
-          }
-          return originalGetContext.call(this, type, attributes);
+        
+        if (gl) {
+            gl.disable(gl.DEPTH_TEST);
+            gl.disable(gl.STENCIL_TEST);
+            gl.disable(gl.DITHER);
+        }
+        
+        console.log(`🎯 Canvas optimized: ${canvas.width}x${canvas.height} (scale: ${settings.scale})`);
+    }
+    
+    // 4. FPS CONTROL
+    let lastFrameTime = 0;
+    const frameInterval = 1000 / settings.fps;
+    
+    const originalRAF = window.requestAnimationFrame;
+    window.requestAnimationFrame = function(callback) {
+        return originalRAF(function(timestamp) {
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            const delta = timestamp - lastFrameTime;
+            
+            if (delta >= frameInterval) {
+                lastFrameTime = timestamp - (delta % frameInterval);
+                callback(timestamp);
+            } else {
+                window.requestAnimationFrame(callback);
+            }
+        });
+    };
+    
+    // 5. MEMORY OPTIMIZATION
+    let frameCount = 0;
+    
+    function scheduleGarbageCollection() {
+        frameCount++;
+        if (frameCount % 300 === 0) {
+            if (window.gc) {
+                window.gc();
+            } else if (console && console.memory) {
+                const temp = new Array(1000).fill(null);
+                setTimeout(() => { temp.length = 0; }, 0);
+            }
+        }
+    }
+    
+    // 6. TOUCH OPTIMIZATION
+    function optimizeInput() {
+        const touchHandler = (e) => {
+            if (e.target === canvas || e.target.closest('#c')) {
+                e.preventDefault();
+            }
         };
-      }
-
-      console.log(`Block Blaster → Device tier \( {tier} → Scale: \){scale.toFixed(2)}, FPS cap: ${targetFps}`);
-    })();
-	</script>
-	
-	<script>
-// ===================== Performance Helper for Swipe Match-3 =====================
-
-// FPS monitor (optional, helps see if game drops frames)
-(function() {
-    let last = performance.now();
-    let frames = 0;
-    function fpsMonitor() {
-        const now = performance.now();
-        frames++;
-        if (now - last >= 1000) {
-            console.log("FPS:", frames);
-            frames = 0;
-            last = now;
-        }
-        requestAnimationFrame(fpsMonitor);
+        
+        ['touchstart', 'touchmove', 'touchend'].forEach(event => {
+            document.addEventListener(event, touchHandler, { passive: false });
+        });
+        
+        canvas.style.touchAction = 'none';
+        canvas.style.webkitTapHighlightColor = 'transparent';
     }
-    fpsMonitor();
-})();
-
-// Hardware acceleration helper for tiles
-function accelerateTiles(tileSelector) {
-    const tiles = document.querySelectorAll(tileSelector);
-    tiles.forEach(tile => {
-        tile.style.transform = "translate3d(0,0,0)";
-        tile.style.willChange = "transform";
+    
+    // 7. PERFORMANCE MONITORING
+    let performanceSamples = [];
+    const MAX_SAMPLES = 60;
+    
+    function monitorPerformance() {
+        const now = performance.now();
+        performanceSamples.push(now);
+        
+        if (performanceSamples.length > MAX_SAMPLES) {
+            performanceSamples.shift();
+            
+            const fps = (performanceSamples.length - 1) / 
+                       ((performanceSamples[performanceSamples.length - 1] - performanceSamples[0]) / 1000);
+            
+            if (fps < settings.fps * 0.7 && settings.scale > 0.3) {
+                settings.scale = Math.max(0.3, settings.scale - 0.1);
+                console.warn(`⚠️ Performance drop! Reducing quality to scale: ${settings.scale}`);
+                optimizeCanvas();
+            }
+        }
+        
+        scheduleGarbageCollection();
+    }
+    
+    // 8. INITIALIZE
+    optimizeCanvas();
+    optimizeInput();
+    
+    setInterval(monitorPerformance, 1000);
+    
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(optimizeCanvas, 250);
     });
-}
-
-// Smooth animation wrapper using requestAnimationFrame
-function animateTile(tile, targetX, targetY, duration = 300, callback) {
-    const startX = tile.offsetLeft;
-    const startY = tile.offsetTop;
-    const deltaX = targetX - startX;
-    const deltaY = targetY - startY;
-    const startTime = performance.now();
-
-    function step(now) {
-        const elapsed = now - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        tile.style.transform = `translate3d(${deltaX*progress}px, ${deltaY*progress}px, 0)`;
-        if (progress < 1) {
-            requestAnimationFrame(step);
-        } else {
-            if (callback) callback();
-        }
-    }
-    requestAnimationFrame(step);
-}
-
-// Throttle expensive game updates (e.g., combo checks)
-function throttle(fn, limit = 50) {
-    let lastCall = 0;
-    return function(...args) {
-        const now = performance.now();
-        if (now - lastCall >= limit) {
-            lastCall = now;
-            fn.apply(this, args);
-        }
-    }
-}
-
-// ===================== Usage Examples =====================
-
-// 1. Accelerate all tiles
-accelerateTiles(".tile"); // replace ".tile" with your tile class
-
-// 2. Animate a tile smoothly
-// animateTile(document.querySelector(".tile"), 200, 300, 300);
-
-// 3. Throttle heavy functions
-// const checkCombosThrottled = throttle(checkCombos, 50);
+    
+    window.GAME_SETTINGS = settings;
+    console.log('✅ Ultra Performance Optimizer Activated!');
+})();
 	</script>
 
 	

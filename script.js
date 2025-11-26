@@ -2363,113 +2363,89 @@ if (typeof window.startBlockBlasterGame === 'function') {
 })();
 
 
-	// ============================================================================
-// RELIABLE INTERSTITIAL AD SYSTEM (20-SECOND COOLDOWN + GAME LOCK)
-// ============================================================================
-
-let adsInitialized = false;
-let interstitialReady = false;
-let interstitialAttempts = 0;
-const MAX_ATTEMPTS = 3;
-let lastAdShownTime = 0;
-const AD_COOLDOWN = 20000; // 20 seconds
-
-// Lock: prevent interstitial during active gameplay
-let gameActive = false;
-
-// 1️⃣ INITIALIZE ADS
-function initializeAds() {
-    if (adsInitialized) return;
-    adsInitialized = true;
-    console.log("🎯 Ads system initialized");
-    loadBannerAd();
-    preloadInterstitialAd();
-}
-
-// 2️⃣ PRELOAD INTERSTITIAL
-function preloadInterstitialAd() {
-    if (interstitialReady) return;
-
-    const script = document.createElement("script");
-    script.dataset.zone = "10203402"; 
-    script.src = "https://nap5k.com/tag.min.js";
-    script.async = true;
-
-    script.onload = () => {
-        interstitialReady = true;
-        interstitialAttempts = 0;
-        console.log("✅ Interstitial ready");
-    };
-
-    script.onerror = () => {
-        console.warn("❌ Interstitial preload failed, retrying...");
-        setTimeout(preloadInterstitialAd, 2000);
-    };
-
-    document.body.appendChild(script);
-}
-
-// 3️⃣ SHOW INTERSTITIAL WITH COOLDOWN + RETRIES
+	/ ==========================
+// 3️⃣ SHOW INTERSTITIAL (COOLDOWN + RETRIES)
+// ==========================
 function showInterstitialWithRetry() {
-    if (gameActive) {
-        console.log("⛔ Interstitial blocked — game in progress");
-        return false;
-    }
 
+    // COOLDOWN CHECK
     if (Date.now() - lastAdShownTime < AD_COOLDOWN) {
-        console.log("⛔ Ad skipped (cooldown)");
+        console.log("⛔ Ad skipped (20-second cooldown active)");
         return false;
     }
 
     interstitialAttempts++;
-    console.log(`🎯 Attempt ${interstitialAttempts}`);
+    console.log(`🎯 Attempt ${interstitialAttempts} to show interstitial`);
 
     if (interstitialReady && window.mntag && typeof window.mntag.show === "function") {
         try {
             window.mntag.show();
-            console.log("💰 Interstitial shown!");
+            console.log("💰 INTERSTITIAL SHOWN — REVENUE EARNED!");
+
+            // SET COOLDOWN TIME
             lastAdShownTime = Date.now();
+
+            // PRELOAD NEXT AD
             interstitialReady = false;
             setTimeout(preloadInterstitialAd, 1000);
+
             return true;
-        } catch (err) {
-            console.error("❌ Error showing ad:", err);
+        } catch (error) {
+            console.error("❌ Error showing ad:", error);
         }
     }
 
+    // RETRIES
     if (interstitialAttempts < MAX_ATTEMPTS) {
+        console.log("🔄 Retrying interstitial in 500ms...");
         setTimeout(showInterstitialWithRetry, 500);
     } else {
+        console.warn("❌ All attempts failed — will try next game");
         preloadInterstitialAd();
     }
 
     return false;
 }
 
-// 4️⃣ GAME OVER
+// ==========================
+// 4️⃣ GAME OVER CALL
+// ==========================
 window.showInterstitialAtGameOver = function() {
+    console.log("🎮 Game Over — preparing interstitial...");
     interstitialAttempts = 0;
+
+    // Skip first game ad for better user experience
+    if (!firstGamePlayed) {
+        firstGamePlayed = true;
+        console.log("⛔ Skipping interstitial on first game");
+        return;
+    }
+
+    // Small delay so UI can update first
     setTimeout(showInterstitialWithRetry, 800);
 };
 
-// 5️⃣ GAME STATE CONTROL
-function startGame() { gameActive = true; }
-function endGame() { gameActive = false; }
-
-// 6️⃣ BANNER
+// ==========================
+// 5️⃣ BANNER AD (unchanged)
+// ==========================
 function loadBannerAd() {
     const script = document.createElement("script");
-    script.dataset.zone = "10203415";
+    script.dataset.zone = "10203415";  // Your banner zone
     script.src = "https://groleegni.net/vignette.min.js";
     script.async = true;
     document.body.appendChild(script);
 }
 
-// 7️⃣ START ADS ON USER INTERACTION
+// ==========================
+// 6️⃣ START ADS AFTER FIRST USER INTERACTION
+// ==========================
 document.addEventListener("click", initializeAds, { once: true });
 document.addEventListener("touchstart", initializeAds, { once: true });
-setTimeout(() => { if (!adsInitialized) initializeAds(); }, 5000);
 
-console.log("🎯 Interstitial system loaded (20s cooldown + game lock)");
+// Backup auto-init after 5s
+setTimeout(() => {
+    if (!adsInitialized) initializeAds();
+}, 5000);
 
-        
+console.log("🎯 Interstitial system (20-sec cooldown + skip first game) loaded successfully!");
+

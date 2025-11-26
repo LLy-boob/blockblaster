@@ -2362,7 +2362,8 @@ if (typeof window.startBlockBlasterGame === 'function') {
     setTimeout(waitUntilEverythingIsReallyReady, 150);
 })();
 
-// ============================================================================
+
+	// ============================================================================
 // RELIABLE INTERSTITIAL AD SYSTEM - FOLLOWS ALL BEST PRACTICES
 // ============================================================================
 
@@ -2468,4 +2469,3 @@ setTimeout(() => {
 }, 5000);
 
 console.log("🎯 Reliable Ad System Loaded - Ready for Game Over!");
-

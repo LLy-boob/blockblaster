@@ -896,7 +896,87 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
       
 
 	  
+<!-- =========================================== -->
+<!--       PERFORMANCE BOOST ENGINE v1.0         -->
+<!--    (Safe – Does NOT interfere with game)    -->
+<!-- =========================================== -->
+<script>
+(function() {
+    if (window.boostEngineLoaded) return;
+    window.boostEngineLoaded = true;
 
+    const deviceBoost = {
+        tier: "unknown",
+        fpsTarget: 60,
+        lowPowerMode: false,
+
+        detectDevice() {
+            let cores = navigator.hardwareConcurrency || 2; 
+            let memory = navigator.deviceMemory || 2;       
+            let lowRes = window.screen.width < 540;         
+
+            if (cores <= 4 || memory <= 2 || lowRes) {
+                this.tier = "low";
+                this.lowPowerMode = true;
+                this.fpsTarget = 40;
+            } else if (cores <= 6) {
+                this.tier = "mid";
+                this.fpsTarget = 50;
+            } else {
+                this.tier = "high";
+                this.fpsTarget = 60;
+            }
+        },
+
+        applyBoost() {
+            // Reduce layout thrashing
+            document.body.style.setProperty("transform", "translateZ(0)");
+
+            // Stabilize animation frames
+            window.requestAnimationFrame = (function(oldRAF) {
+                return function(callback) {
+                    return oldRAF(function(timestamp) {
+                        callback(timestamp);
+                    });
+                };
+            })(window.requestAnimationFrame);
+
+            // CPU relief for low-end phones
+            if (this.lowPowerMode) {
+                console.log("⚡ Low-end device detected → Boost Mode Activated");
+
+                // Reduce CPU wake-ups by throttling intervals & timeouts
+                const originalSetTimeout = window.setTimeout;
+                window.setTimeout = function(cb, t) {
+                    return originalSetTimeout(cb, Math.max(t, 20)); 
+                };
+
+                const originalSetInterval = window.setInterval;
+                window.setInterval = function(cb, t) {
+                    return originalSetInterval(cb, Math.max(t, 40)); 
+                };
+
+                // Reduce reflows by batching DOM changes
+                const originalAppend = Element.prototype.appendChild;
+                Element.prototype.appendChild = function(el) {
+                    requestAnimationFrame(() => originalAppend.call(this, el));
+                };
+            }
+        }
+    };
+
+    // Detect and apply optimizations
+    deviceBoost.detectDevice();
+    deviceBoost.applyBoost();
+
+    // Expose if you want to read the mode
+    window.DeviceBoost = deviceBoost;
+
+})();
+</script>
+<!-- =========================================== -->
+<!--       PERFORMANCE BOOST ENGINE v1.0         -->
+<!-- =========================================== -->
 	
 
 

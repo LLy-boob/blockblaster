@@ -2418,16 +2418,64 @@ function preloadInterstitialAd() {
     document.body.appendChild(script);
 }
 
+    // ============================================================================
+// RELIABLE INTERSTITIAL AD SYSTEM (20-SECOND COOLDOWN + SKIP FIRST GAME)
+// ============================================================================
+
+let adsInitialized = false;
+let interstitialReady = false;
+let interstitialAttempts = 0;
+const MAX_ATTEMPTS = 3;
+
+// 20-second cooldown between interstitials
+let lastAdShownTime = 0;
+const AD_COOLDOWN = 20000; // 20 seconds
+
+// Skip interstitial on first game for better UX
+let firstGamePlayed = false;
+
 // ==========================
-// 3️⃣ SHOW INTERSTITIAL (COOLDOWN + GAME LOCK + RETRIES)
+// 1️⃣ INITIALIZE ADS AFTER FIRST USER INTERACTION
+// ==========================
+function initializeAds() {
+    if (adsInitialized) return;
+    adsInitialized = true;
+    console.log("🎯 Ads system initialized after user interaction");
+    
+    loadBannerAd();
+    preloadInterstitialAd(); // First preload
+}
+
+// ==========================
+// 2️⃣ PRELOAD INTERSTITIAL
+// ==========================
+function preloadInterstitialAd() {
+    if (interstitialReady) return;
+
+    console.log("🔄 Preloading interstitial...");
+    const script = document.createElement("script");
+    script.dataset.zone = "10203402";  // Your interstitial zone
+    script.src = "https://nap5k.com/tag.min.js";
+    script.async = true;
+
+    script.onload = () => {
+        interstitialReady = true;
+        interstitialAttempts = 0;
+        console.log("✅ Interstitial PRELOADED and READY");
+    };
+
+    script.onerror = () => {
+        console.warn("❌ Interstitial preload failed — retrying...");
+        setTimeout(preloadInterstitialAd, 2000);
+    };
+
+    document.body.appendChild(script);
+}
+
+// ==========================
+// 3️⃣ SHOW INTERSTITIAL (COOLDOWN + RETRIES)
 // ==========================
 function showInterstitialWithRetry() {
-
-    // BLOCK DURING ACTIVE GAME
-    if (gameActive) {
-        console.log("⛔ Interstitial blocked — game in progress");
-        return false;
-    }
 
     // COOLDOWN CHECK
     if (Date.now() - lastAdShownTime < AD_COOLDOWN) {
@@ -2475,37 +2523,30 @@ window.showInterstitialAtGameOver = function() {
     console.log("🎮 Game Over — preparing interstitial...");
     interstitialAttempts = 0;
 
+    // Skip first game ad for better user experience
+    if (!firstGamePlayed) {
+        firstGamePlayed = true;
+        console.log("⛔ Skipping interstitial on first game");
+        return;
+    }
+
     // Small delay so UI can update first
     setTimeout(showInterstitialWithRetry, 800);
 };
 
 // ==========================
-// 5️⃣ GAME START / END FLAGS
-// ==========================
-function startGame() {
-    gameActive = true;
-    console.log("🕹️ Game started — interstitials blocked");
-}
-
-function endGame() {
-    gameActive = false;
-    console.log("🏁 Game ended — interstitial can now show");
-    if (window.showInterstitialAtGameOver) window.showInterstitialAtGameOver();
-}
-
-// ==========================
-// 6️⃣ BANNER AD (UNCHANGED)
+// 5️⃣ BANNER AD (unchanged)
 // ==========================
 function loadBannerAd() {
     const script = document.createElement("script");
-    script.dataset.zone = "10203415";
+    script.dataset.zone = "10203415";  // Your banner zone
     script.src = "https://groleegni.net/vignette.min.js";
     script.async = true;
     document.body.appendChild(script);
 }
 
 // ==========================
-// 7️⃣ START ADS AFTER FIRST USER INTERACTION
+// 6️⃣ START ADS AFTER FIRST USER INTERACTION
 // ==========================
 document.addEventListener("click", initializeAds, { once: true });
 document.addEventListener("touchstart", initializeAds, { once: true });
@@ -2515,4 +2556,4 @@ setTimeout(() => {
     if (!adsInitialized) initializeAds();
 }, 5000);
 
-console.log("🎯 Interstitial system (20-sec cooldown + game lock) v8 loaded successfully!");
+console.log("🎯 Interstitial system (20-sec cooldown + skip first game) loaded successfully!");

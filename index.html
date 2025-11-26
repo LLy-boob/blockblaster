@@ -844,112 +844,83 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 	
 <script>
 // ============================================================================
-// ULTIMATE AD SYSTEM - GUARANTEED INTERSTITIALS AT EVERY GAME OVER
-// ============================================================================
-
 let interstitialReady = false;
 let bannerLoaded = false;
 let adInitialized = false;
 
-// INITIALIZE ADS ON FIRST USER INTERACTION
 function initializeAds() {
     if (adInitialized) return;
     adInitialized = true;
-    
+
     loadBannerAd();
     preloadInterstitialAd();
     console.log("Ads system initialized");
 }
 
-// BANNER AD - LOADS IMMEDIATELY
+// BANNER
 function loadBannerAd() {
     if (bannerLoaded) return;
-    
-    const bannerScript = document.createElement('script');
-    bannerScript.dataset.zone = '10203415';
-    bannerScript.src = 'https://groleegni.net/vignette.min.js';
-    bannerScript.async = true;
-    bannerScript.onload = () => {
+
+    const script = document.createElement("script");
+    script.dataset.zone = "10203415";
+    script.src = "https://groleegni.net/vignette.min.js";
+    script.async = true;
+
+    script.onload = () => {
         bannerLoaded = true;
-        console.log('Banner ad loaded successfully');
+        console.log("Banner loaded");
     };
-    bannerScript.onerror = () => {
-        console.warn('Banner ad failed, retrying...');
-        setTimeout(loadBannerAd, 5000);
+
+    script.onerror = () => {
+        setTimeout(loadBannerAd, 4000);
     };
-    document.body.appendChild(bannerScript);
+
+    document.body.appendChild(script);
 }
 
-// INTERSTITIAL AD - PRELOAD FOR GAME OVER
+// INTERSTITIAL
 function preloadInterstitialAd() {
     if (interstitialReady) return;
-    
-    const interstitialScript = document.createElement('script');
-    interstitialScript.dataset.zone = '10203402';
-    interstitialScript.src = 'https://nap5k.com/tag.min.js';
-    interstitialScript.async = true;
-    interstitialScript.onload = () => {
+
+    const script = document.createElement("script");
+    script.dataset.zone = "10203402";
+    script.src = "https://nap5k.com/tag.min.js";
+    script.async = true;
+
+    script.onload = () => {
         interstitialReady = true;
-        console.log('Interstitial ad preloaded and ready for game over');
+        console.log("Interstitial preloaded");
     };
-    interstitialScript.onerror = () => {
-        console.warn('Interstitial preload failed, retrying...');
+
+    script.onerror = () => {
         setTimeout(preloadInterstitialAd, 3000);
     };
-    document.body.appendChild(interstitialScript);
+
+    document.body.appendChild(script);
 }
 
-// GUARANTEED INTERSTITIAL AT GAME OVER - MULTIPLE ATTEMPTS
-window.showInterstitialNow = function() {
-    console.log('Attempting to show interstitial at game over...');
-    
-    // ATTEMPT 1: Show immediately if ready
-    if (interstitialReady && typeof window.showTag === 'function') {
-        try {
-            window.showTag();
-            console.log('🎯 INTERSTITIAL SHOWN SUCCESSFULLY - REVENUE EARNED!');
-            
-            // Immediately preload next interstitial
-            interstitialReady = false;
-            setTimeout(preloadInterstitialAd, 1000);
-            
-            return true;
-        } catch (error) {
-            console.error('Error showing interstitial:', error);
-        }
+window.showInterstitialNow = function () {
+    console.log("Trying to show interstitial…");
+
+    // REAL monetag function here ⬇️⬇️⬇️
+    if (interstitialReady && window.mntag && typeof window.mntag.show === "function") {
+        window.mntag.show();
+        console.log("🎯 Interstitial shown!");
+
+        interstitialReady = false;
+        setTimeout(preloadInterstitialAd, 1000);
+        return true;
     }
-    
-    // ATTEMPT 2: If not ready, try to load and show quickly
-    console.log('Interstitial not ready, attempting quick load...');
+
+    console.warn("Interstitial not ready");
+
     preloadInterstitialAd();
-    
-    // ATTEMPT 3: Set timeout to check again in 500ms
-    setTimeout(() => {
-        if (interstitialReady && typeof window.showTag === 'function') {
-            window.showTag();
-            console.log('🎯 INTERSTITIAL SHOWN AFTER QUICK LOAD!');
-            interstitialReady = false;
-            setTimeout(preloadInterstitialAd, 1000);
-        } else {
-            console.warn('Interstitial could not be shown this time, but will be ready next game');
-            // Force preload for next game
-            preloadInterstitialAd();
-        }
-    }, 500);
-    
     return false;
 };
 
-// START ADS ON USER INTERACTION
-document.addEventListener('click', initializeAds, { once: true });
-document.addEventListener('touchstart', initializeAds, { once: true });
-
-// ALSO START ADS WHEN GAME LOADER HIDES
-const originalHideLoader = window.startBlockBlasterGame;
-window.startBlockBlasterGame = function() {
-    initializeAds();
-    if (originalHideLoader) originalHideLoader();
-};
+// START ON USER ACTION
+document.addEventListener("click", initializeAds, { once: true });
+document.addEventListener("touchstart", initializeAds, { once: true });
 </script>
 
             

@@ -406,34 +406,35 @@ window.startBlockBlasterGame = hideBlockBlasterLoader;
 <script>
 (function(){
   const shareBtn = document.getElementById("shareBtn");
-
-  const texts = [
-    "Try this game! 🎮",
-    "Challenge me! 🔥",
-    "Bet you can’t beat my score 😎",
-  ];
-
-  function randomMsg() {
-    return texts[Math.floor(Math.random() * texts.length)];
-  }
+  const shareURL = window.location.href;
 
   shareBtn.addEventListener("click", async () => {
-    let msg = randomMsg();
 
-    try {
-      if (navigator.share) {
+    // 1️⃣ If Web Share API works (mobile browser)
+    if (navigator.share) {
+      try {
         await navigator.share({
-          title: "Play this game!",
-          text: msg,
-          url: window.location.href
+          title: "Play Block Blaster!",
+          text: "Try this game! It's addictive 🔥",
+          url: shareURL
         });
-      } else {
-        await navigator.clipboard.writeText(window.location.href);
-        alert("Link copied!");
+        return;
+      } catch (e) {
+        console.log("Share cancelled.", e);
       }
-    } catch(err) {
-      console.log(err);
     }
+
+    // 2️⃣ Fallback for itch.io (copy link)
+    try {
+      await navigator.clipboard.writeText(shareURL);
+      alert("Link copied! Share it with your friends 🎮");
+    } catch (e) {
+      console.log("Clipboard blocked, using prompt.");
+
+      // 3️⃣ FINAL fallback (always works)
+      prompt("Copy this link:", shareURL);
+    }
+
   });
 })();
 	</script>

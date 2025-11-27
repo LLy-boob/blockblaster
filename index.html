@@ -291,7 +291,7 @@ window.startBlockBlasterGame = hideBlockBlasterLoader;
 		<h1>Block Blaster</h1>
 		<button type="button" class="play-normal-btn">PLAY GAME</button>
 		<button type="button" class="play-casual-btn">CASUAL MODE</button>
-		<div class="credits">3D game by <a href="https://lly-boob.github.io/Ultimate-pong/">LLydra Abong</a></div>
+		<div class="credits">3D game by <a href="https://lly-boob.github.io/Ultimate-pong/">Game lovers</a></div>
 	</div>
 	<div class="menu menu--pause">
 		<h1>Paused</h1>
@@ -1217,371 +1217,60 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 <!-- ====================================================== -->
 
         
-	
-
-
-<!-- =============================================================== -->
-<!-- ULTRA SAFE AD + FLICKER ABSORBER ENGINE v5 (Safe • Device-Aware) -->
-<!-- - Shadow DOM + Triple Buffering                                -->
-<!-- - Device checks: FPS, memory, battery (if available)           -->
-<!-- - Opt-in, non-invasive (use data-ultraad-disable="true" to skip)-->
-<!-- - Minimal immutable handle: window.__UltraAdV5 (read-only)     -->
-<!-- =============================================================== -->
-<div id="ultra-ad-root" aria-hidden="true" style="width:320px;height:50px;margin:auto;text-align:center; visibility:hidden;"></div>
+	<!-- ================================ -->
+<!--   SAFE AD + OPTIMIZER ENGINE     -->
+<!-- ================================ -->
+<div id="ad-container" style="width:320px; height:50px; margin:auto; text-align:center; visibility:hidden;">
+  <!-- Ad will load here -->
+</div>
 
 <script>
-(function () {
-  if (window.__UltraAdV5Loaded) return;
-  window.__UltraAdV5Loaded = true;
+(function() {
+  if (window.adOptimizerLoaded) return;
+  window.adOptimizerLoaded = true;
 
-  // CONFIG (safe conservative defaults)
-  const CONFIG = Object.freeze({
-    AD_URL: "https://example.com/your-ad.html", // ← replace with your ad URL
-    WIDTH: 320,
-    HEIGHT: 50,
-    LOAD_DELAY_MS: 900,        // wait after window.load for stability
-    FPS_MIN_SAFE: 35,          // only show ad if avg fps >= this
-    MEM_USAGE_MAX_RATIO: 0.80, // only show ad if JS heap < 80% of limit (if available)
-    BATTERY_MIN_RATIO: 0.20,   // avoid showing when battery is below this (if detected)
-    MAX_LOAD_RETRIES: 2        // number of times to attempt stabilize/load
-  });
+  const adContainer = document.getElementById('ad-container');
+  if (!adContainer) return;
 
-  // Private state
-  const state = {
-    running: true,
-    adShown: false,
-    retries: 0,
-    fpsSamples: [],
-    lastNow: performance.now(),
-    avgFps: 60,
-    mem: { usedMB: null, totalMB: null },
-    batteryLevel: null,
-    batteryCharging: null,
-    reasonSkip: null
+  // Flicker/Glitch Absorber Engine
+  const optimizer = {
+    buffer: document.createDocumentFragment(), // Temporary offscreen buffer
+    ready: false,
+    showAd: function(iframe) {
+      // Append to buffer first
+      this.buffer.appendChild(iframe);
+      // Minimal delay to ensure game rendering is stable
+      setTimeout(() => {
+        adContainer.appendChild(this.buffer);
+        adContainer.style.visibility = 'visible';
+        this.ready = true;
+      }, 200); // 200ms delay is enough to absorb frame glitches
+    }
   };
 
-  // Utilities
-  function safeLog(...args) {
-    if (location.search.indexOf("ultraad_debug") !== -1) console.debug("[UltraAdV5]", ...args);
-  }
+  // Create ad iframe
+  const iframe = document.createElement('iframe');
+  iframe.src = 'https://example.com/your-ad.html'; // Replace with your ad URL
+  iframe.width = '320';
+  iframe.height = '50';
+  iframe.style.border = '0';
+  iframe.style.overflow = 'hidden';
+  iframe.loading = 'lazy';
+  iframe.allow = 'autoplay; fullscreen';
 
-  function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
-
-  // Passive FPS monitor (observational only)
-  function fpsProbe() {
-    try {
-      requestAnimationFrame((now) => {
-        const dt = Math.max(1, now - state.lastNow);
-        state.lastNow = now;
-        const fps = 1000 / dt;
-        state.fpsSamples.push(fps);
-        if (state.fpsSamples.length > 40) state.fpsSamples.shift();
-        const avg = state.fpsSamples.reduce((a,b)=>a+b,0) / state.fpsSamples.length;
-        state.avgFps = Math.round(avg);
-      });
-    } catch (e) {}
-    // schedule lightweight next probe (non-blocking)
-    setTimeout(fpsProbe, 1);
-  }
-
-  // Memory probe (if available)
-  function memProbe() {
-    try {
-      if (performance && performance.memory) {
-        const mem = performance.memory;
-        state.mem.usedMB = Math.round(mem.usedJSHeapSize / 1048576);
-        state.mem.totalMB = Math.round(mem.jsHeapSizeLimit / 1048576);
-      } else {
-        state.mem.usedMB = null;
-        state.mem.totalMB = null;
-      }
-    } catch (e) { state.mem.usedMB = null; state.mem.totalMB = null; }
-    setTimeout(memProbe, 2500);
-  }
-
-  // Battery probe (best-effort, non-blocking)
-  function batteryProbe() {
-    try {
-      if (navigator.getBattery) {
-        navigator.getBattery().then(batt => {
-          state.batteryLevel = batt.level; // 0..1
-          state.batteryCharging = batt.charging;
-          // update on change
-          batt.addEventListener('levelchange', ()=> state.batteryLevel = batt.level);
-          batt.addEventListener('chargingchange', ()=> state.batteryCharging = batt.charging);
-        }).catch(()=>{/*ignore*/});
-      }
-    } catch (e) {}
-  }
-
-  // Decide whether it is safe to show ad
-  function isSafeToShow() {
-    // opt-out via attribute
-    const root = document.getElementById("ultra-ad-root");
-    if (!root || root.getAttribute("data-ultraad-disable") === "true") {
-      state.reasonSkip = "disabled-via-attribute";
-      return false;
-    }
-
-    // fps check
-    if (state.avgFps && state.avgFps < CONFIG.FPS_MIN_SAFE) {
-      state.reasonSkip = "low-fps";
-      return false;
-    }
-
-    // memory check (if available)
-    if (state.mem.totalMB && state.mem.usedMB) {
-      if (state.mem.usedMB / state.mem.totalMB > CONFIG.MEM_USAGE_MAX_RATIO) {
-        state.reasonSkip = "high-memory";
-        return false;
-      }
-    }
-
-    // battery check (if available)
-    if (state.batteryLevel != null && state.batteryLevel < CONFIG.BATTERY_MIN_RATIO && state.batteryCharging === false) {
-      // low battery and not charging -> skip ads
-      state.reasonSkip = "low-battery";
-      return false;
-    }
-
-    // otherwise ok
-    state.reasonSkip = null;
-    return true;
-  }
-
-  // Event broadcaster (non-intrusive)
-  function emitStatus() {
-    try {
-      const snap = {
-        adShown: state.adShown,
-        avgFps: state.avgFps,
-        mem: Object.assign({}, state.mem),
-        batteryLevel: state.batteryLevel,
-        batteryCharging: state.batteryCharging,
-        reasonSkip: state.reasonSkip,
-        timestamp: Date.now()
-      };
-      window.dispatchEvent(new CustomEvent('ultraadv5:status', { detail: snap }));
-    } catch (e) {}
-  }
-
-  // Triple-buffer stabilizer + shadow DOM encapsulation
-  function createBuffers(rootEl) {
-    // Use shadow root to avoid CSS collisions
-    const host = document.createElement('div');
-    host.setAttribute('aria-hidden','true');
-    const shadow = host.attachShadow({ mode: 'closed' });
-
-    // styles (scoped)
-    const style = document.createElement('style');
-    style.textContent = `
-      :host{display:block;width:${CONFIG.WIDTH}px;height:${CONFIG.HEIGHT}px}
-      .ghost{opacity:0; transform:translateZ(0); will-change:opacity,transform}
-      .final{opacity:0; transition:opacity .22s ease-out}
-      iframe{width:${CONFIG.WIDTH}px;height:${CONFIG.HEIGHT}px;border:0;display:block}
-    `;
-    shadow.appendChild(style);
-
-    // Offscreen buffer (hidden in light DOM)
-    const offscreen = document.createElement('div');
-    offscreen.style.display = 'none';
-
-    // Ghost layer (compositor layer)
-    const ghost = document.createElement('div');
-    ghost.className = 'ghost';
-    ghost.style.pointerEvents = 'none';
-
-    // Final layer (will fade-in)
-    const final = document.createElement('div');
-    final.className = 'final';
-    final.style.pointerEvents = 'none';
-
-    shadow.appendChild(offscreen);
-    shadow.appendChild(ghost);
-    shadow.appendChild(final);
-
-    rootEl.appendChild(host);
-
-    return { offscreen, ghost, final, host, shadow };
-  }
-
-  // Create iframe with strict sandboxing by default
-  function makeAdIframe() {
-    const iframe = document.createElement('iframe');
-    iframe.src = CONFIG.AD_URL;
-    iframe.width = String(CONFIG.WIDTH);
-    iframe.height = String(CONFIG.HEIGHT);
-    iframe.loading = "lazy";
-    // Conservative sandbox - adjust if your ad needs more permissions
-    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin'); 
-    iframe.style.display = 'block';
-    iframe.addEventListener('error', ()=> safeLog('iframe load error'));
-    return iframe;
-  }
-
-  // Stabilize & reveal ad (triple-buffer dance)
-  function stabilizeAndReveal(buffers, iframe) {
-    try {
-      // place iframe in offscreen first
-      buffers.offscreen.appendChild(iframe);
-
-      // Wait a bit for the iframe to load content frames (non-blocking)
-      // Use conservative two requestAnimationFrame steps to let compositor settle
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // move to ghost (GPU composited) layer
-          buffers.ghost.appendChild(iframe);
-
-          // let compositor settle across two frames
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              // final move and fade-in
-              buffers.final.appendChild(iframe);
-              buffers.final.style.opacity = '1';
-              // make host visible
-              const rootEl = document.getElementById("ultra-ad-root");
-              if (rootEl) rootEl.style.visibility = "visible";
-              state.adShown = true;
-              safeLog("UltraAdV5: ad displayed");
-              emitStatus();
-            });
-          });
-
-        });
-      });
-
-    } catch (e) {
-      safeLog("UltraAdV5: stabilize error", e);
-    }
-  }
-
-  // Core load flow (conservative retry)
-  function tryLoadAd(buffers) {
-    if (!isSafeToShow()) {
-      emitStatus();
-      return;
-    }
-    if (state.retries > CONFIG.MAX_LOAD_RETRIES) {
-      state.reasonSkip = "max-retries";
-      emitStatus();
-      return;
-    }
-    state.retries++;
-
-    const iframe = makeAdIframe();
-    // Wait for iframe to report load OR timeout (whichever first)
-    const loadTimeout = setTimeout(() => {
-      safeLog("UltraAdV5: iframe load timeout");
-      // Still attempt stabilization (some browsers render even without 'load' firing)
-      stabilizeAndReveal(buffers, iframe);
-    }, 3000);
-
-    iframe.addEventListener('load', () => {
-      clearTimeout(loadTimeout);
-      stabilizeAndReveal(buffers, iframe);
-    });
-
-    // If iframe errors early, abort and emit
-    iframe.addEventListener('error', () => {
-      clearTimeout(loadTimeout);
-      safeLog("UltraAdV5: iframe error during load");
-      emitStatus();
-    });
-  }
-
-  // Bootstrap sequence: wait for page + delay, then run safe checks, then attempt to load
-  function bootstrap() {
-    try {
-      const root = document.getElementById("ultra-ad-root");
-      if (!root) return;
-      // quick guard: root can opt-out with data-ultraad-disable="true"
-      if (root.getAttribute("data-ultraad-disable") === "true") {
-        state.reasonSkip = "disabled-via-attribute";
-        emitStatus();
-        return;
-      }
-
-      // create buffers inside shadow to avoid CSS collisions
-      const buffers = createBuffers(root);
-
-      // run initial safety evaluation; start probes
-      fpsProbe();
-      memProbe();
-      batteryProbe();
-
-      // after window load + stable delay -> decide and try loading
-      function onReadyToAttempt() {
-        if (!isSafeToShow()) {
-          // schedule a gentle re-check later (ad will only show if conditions improve)
-          state.reasonSkip = state.reasonSkip || "initial-safety-fail";
-          emitStatus();
-          setTimeout(() => {
-            if (!state.adShown) tryLoadAd(buffers);
-          }, 2500);
-          return;
-        }
-        tryLoadAd(buffers);
-      }
-
-      if (document.readyState === "complete") {
-        setTimeout(onReadyToAttempt, CONFIG.LOAD_DELAY_MS);
-      } else {
-        window.addEventListener('load', () => setTimeout(onReadyToAttempt, CONFIG.LOAD_DELAY_MS), { once: true });
-      }
-
-    } catch (e) { safeLog("UltraAdV5 bootstrap error", e); }
-  }
-
-  // Expose a tiny, read-only API for diagnostics and opt-in actions
-  const publicAPI = Object.freeze({
-    getInfo: () => ({
-      adShown: state.adShown,
-      avgFps: state.avgFps,
-      mem: Object.assign({}, state.mem),
-      batteryLevel: state.batteryLevel,
-      batteryCharging: state.batteryCharging,
-      reasonSkip: state.reasonSkip,
-      retries: state.retries
-    }),
-    // devs can ask the engine to attempt a re-evaluation & load (safe)
-    attemptReload: () => {
-      try {
-        const root = document.getElementById("ultra-ad-root");
-        if (!root) return;
-        // only allow manual reload if ad not shown
-        if (state.adShown) return;
-        // dispatch an event for logs
-        window.dispatchEvent(new CustomEvent('ultraadv5:manual-reload'));
-        // small delay for safety
-        setTimeout(bootstrap, 300);
-      } catch (e) {}
-    },
-    version: "5.0.0"
+  // Load ad asynchronously after game init
+  window.addEventListener('load', () => {
+    setTimeout(() => optimizer.showAd(iframe), 1000); // Delay 1s after game load
   });
-
-  // Attach immutable handle (non-writable, non-configurable)
-  try {
-    Object.defineProperty(window, '__UltraAdV5', {
-      value: publicAPI,
-      writable: false,
-      configurable: false,
-      enumerable: false
-    });
-  } catch (e) {
-    window.__UltraAdV5 = publicAPI;
-  }
-
-  // start
-  bootstrap();
-
-  // periodic emitter for external observers (optional)
-  setInterval(emitStatus, 1500);
 
 })();
 </script>
-<!-- =============================================================== -->
-<!-- ULTRA SAFE AD + FLICKER ABSORBER ENGINE v5 END                    -->
-<!-- =============================================================== -->            
+<!-- ================================ -->
+<!--   SAFE AD + OPTIMIZER ENGINE END -->
+<!-- ================================ -->
+
+
+         
 	
             
 

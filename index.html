@@ -440,65 +440,78 @@ window.startBlockBlasterGame = hideBlockBlasterLoader;
 	</script>
 
 <script>
-// =========================
-// Touch Input Booster (Safe)
-// =========================
-
-// This prevents the browser from interfering with your swipe
-// but does NOT break scroll on other pages or other elements.
-// Only the canvas is protected.
+// =====================================================
+// TOUCH INPUT SYSTEM (Fixed + Combined)
+// =====================================================
 
 document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.querySelector("canvas");
     if (!canvas) return;
 
-    const opts = { passive: false };
-
+    // 1️⃣ Stop browser from blocking swipes ONLY on canvas
+    const blockOpts = { passive: false };
     ["touchstart", "touchmove", "touchend"].forEach(ev => {
         canvas.addEventListener(ev, e => {
-            // Only stop browser behavior IF the user touched the canvas
-            e.preventDefault();
-        }, opts);
+            e.preventDefault(); // block scroll / zoom only on canvas
+        }, blockOpts);
     });
 
-    canvas.style.touchAction = "none"; // ultra-safe, only affects canvas
-});
-	</script>
-
-<style>
-
-<script>
-// =========================
-// Touch Input Ultra Booster
-// =========================
-
-// Makes touchmove fire at maximum device speed
-// without changing how your game handles swipes.
-document.addEventListener("DOMContentLoaded", () => {
-    const canvas = document.querySelector("canvas");
-    if (!canvas) return;
-
-    const opts = { passive: true }; 
-    // passive:true means "do NOT block game logic"
-
-    let lastX = 0;
-    let lastY = 0;
+    // 2️⃣ High-speed touch reader (no lag)
+    let lastX = 0, lastY = 0;
 
     canvas.addEventListener("touchmove", e => {
         const t = e.touches[0];
         lastX = t.clientX;
         lastY = t.clientY;
+    }, { passive: true });
 
-        // You can read lastX / lastY anywhere,
-        // the game will feel smoother because input refreshes faster.
-    }, opts);
-
-    // Make the browser render touch faster
-    canvas.style.touchAction = "manipulation";
+    // 3️⃣ Ultra-fast touch pipeline
+    canvas.style.touchAction = "none";
 });
 </script>
 
+
+<script>
+// =====================================================
+// ULTRA SMOOTH SWIPE ENGINE v3
+// =====================================================
+
+// Your block element — change this ID to your player/block
+const player = document.getElementById("block");
+
+// Target = where the finger is
+let targetX = 0;
+let targetY = 0;
+
+// Smooth position = where the block actually glides to
+let smoothX = 0;
+let smoothY = 0;
+
+// Smooth factor: lower = smoother, higher = faster
+const EASE = 0.18;
+
+// Animation loop
+function smoothLoop() {
+    // Interpolation (lerp)
+    smoothX += (targetX - smoothX) * EASE;
+    smoothY += (targetY - smoothY) * EASE;
+
+    // GPU transform for ultra smooth motion
+    player.style.transform = `translate3d(${smoothX}px, ${smoothY}px, 0)`;
+
+    requestAnimationFrame(smoothLoop);
+}
+smoothLoop();
+
+// Read the high-speed touch data
+document.addEventListener("touchmove", e => {
+    const t = e.touches[0];
+    targetX = t.clientX;
+    targetY = t.clientY;
+}, { passive: true });
+	</script>
 	
+	<style>
 /* ===== Install Popup Animation ===== */
 #autoInstallBox {
     opacity: 0;

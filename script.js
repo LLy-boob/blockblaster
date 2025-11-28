@@ -104,8 +104,8 @@ const allShadowPolys = [];
 
 // Playlist of your beats
 const playlist = [
-  "./music1.mp3",
-  "./music2.mp3"
+  "./music1.m4a",
+  "./music2.m4a"
 ];
 
 let currentTrack = 0;

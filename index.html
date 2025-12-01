@@ -194,6 +194,12 @@
   75%  { content: '...'; }
   100% { content: ''; }
 }
+	#loadingScreen, 
+.loader-wrapper, 
+#screenLoader {
+  pointer-events: none !important;
+  z-index: 9998 !important;
+	}
 	</style>
 
 <script>
@@ -420,6 +426,9 @@ window.startBlockBlasterGame = hideBlockBlasterLoader;
   height: 55%;
   fill: #fff;
 }
+	#shareBtn {
+  z-index: 9999999 !important;
+	}
 </style>
 
 <div id="shareBtn">

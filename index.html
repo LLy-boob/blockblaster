@@ -342,7 +342,67 @@ window.startSwipeFury = hideLoader;
 
 
 
+<!-- ===== Simple Fixed Share Button ===== -->
+<div id="shareBtn">
+  <svg viewBox="0 0 24 24" width="42" height="42" fill="#fff">
+    <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.02-4.11A2.99 2.99 0 0018 7.91a3 3 0 10-3-3c0 .24.04.47.09.7L8.07 9.72A3.007 3.007 0 006 9a3 3 0 103 3c0-.24-.04-.47-.09-.7l7.12 4.17c.5-.44 1.15-.71 1.87-.71a3 3 0 100-6z"/>
+  </svg>
+</div>
 
+<script>
+(function() {
+  const shareBtn = document.getElementById("shareBtn");
+  
+  // Make it look like the mute button
+  shareBtn.style.position = 'fixed';
+  shareBtn.style.bottom = '20px'; // Same as mute button
+  shareBtn.style.left = '20px'; // Opposite side of mute button
+  shareBtn.style.width = '50px';
+  shareBtn.style.height = '50px';
+  shareBtn.style.cursor = 'pointer';
+  shareBtn.style.zIndex = '9999'; // Same as mute button
+  
+  // Optional: Add background like mute button
+  shareBtn.style.background = 'rgba(255,255,255,0.1)';
+  shareBtn.style.borderRadius = '50%';
+  shareBtn.style.display = 'flex';
+  shareBtn.style.alignItems = 'center';
+  shareBtn.style.justifyContent = 'center';
+  
+  // Center the SVG
+  const svg = shareBtn.querySelector('svg');
+  svg.style.display = 'block';
+  
+  const texts = [
+    "Try this game! 🎮",
+    "Challenge me! 🔥",
+    "Bet you can't beat my score 😎",
+  ];
+
+  function randomMsg() {
+    return texts[Math.floor(Math.random() * texts.length)];
+  }
+
+  shareBtn.addEventListener("click", async () => {
+    let msg = randomMsg();
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: "Block Blaster",
+          text: msg,
+          url: window.location.href
+        });
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert("Link copied!");
+      }
+    } catch(err) {
+      console.log(err);
+    }
+  });
+})();
+	</script>
 
       
 

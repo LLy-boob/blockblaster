@@ -340,99 +340,95 @@ window.startSwipeFury = hideLoader;
   };
 </script>
 
-<!-- SWIPEFURY – FIXED & BEAUTIFUL SHARE BUTTON (appears only after loader) -->
+<!-- YOUR ORIGINAL SHARE BUTTON – NOW FIXED (hidden during loader) -->
 <style>
-#swipeFuryShare {
+#shareBtn {
   position: fixed;
-  bottom: 18px;
+  bottom: 14px;
   left: 20px;
-  width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, #00ffff33, #ff006633);
-  backdrop-filter: blur(12px);
-  border: 2px solid rgba(0,255,255,0.4);
-  border-radius: 50%;
+  width: 42px;
+  height: 42px;
   cursor: pointer;
-  z-index: 9999;               /* lower than loader (99999) → safe! */
-  opacity: 0;                  /* start hidden */
-  transform: scale(0.8);
-  transition: all 0.6s cubic-bezier(0.2, 0.8, 0.4, 1);
+  z-index: 9000;                     /* ← Lower than loader (99999) = safe! */
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(6px);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 30px #00ffff44;
-  pointer-events: none;        /* disabled until visible */
+  border: 1px solid rgba(255,255,255,0.4);
+  
+  /* ←←← THIS IS THE KEY FIX →→→ */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s ease;
 }
 
-#swipeFuryShare.visible {
+#shareBtn.visible {
   opacity: 1;
-  transform: scale(1);
   pointer-events: all;
 }
 
-#swipeFuryShare:hover {
-  transform: scale(1.15);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 50px #00ffff88;
-}
-
-#swipeFuryShare svg {
-  width: 60%;
-  height: 60%;
-  fill: #ffffff;
-  filter: drop-shadow(0 0 10px #00ffff);
+#shareBtn svg {
+  width: 55%;
+  height: 55%;
+  fill: #fff;
 }
 </style>
 
-<div id="swipeFuryShare">
+<div id="shareBtn">
   <svg viewBox="0 0 24 24">
     <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.02-4.11A2.99 2.99 0 0018 7.91a3 3 0 10-3-3c0 .24.04.47.09.7L8.07 9.72A3.007 3.007 0 006 9a3 3 0 103 3c0-.24-.04-.47-.09-.7l7.12 4.17c.5-.44 1.15-.71 1.87-.71a3 3 0 100-6z"/>
   </svg>
 </div>
 
 <script>
-// Show share button ONLY after loader is gone
-function showShareButton() {
-  const btn = document.getElementById("swipeFuryShare");
-  if (btn) btn.classList.add("visible");
-}
+(function(){
+  const shareBtn = document.getElementById("shareBtn");
+  const shareURL = window.location.href;
 
-// Hook into your existing loader hide functions
-const originalHide = window.startSwipeFury || window.startSwipeFuryGame || hideSwipeFuryLoader;
-if (typeof originalHide === "function") {
-  const newHide = function() {
-    originalHide();
-    setTimeout(showShareButton, 300);  // small delay for smooth feel
+  // ←←← AUTOMATICALLY SHOW BUTTON WHEN LOADER IS GONE ←←←
+  const originalHideFunction = window.startSwipeFury || window.startSwipeFuryGame || hideSwipeFuryLoader || hideBlockBlasterLoader;
+  const showShare = () => {
+    shareBtn.classList.add("visible");
   };
-  window.startSwipeFury = window.startSwipeFuryGame = newHide;
-} else {
-  // If no loader function found, show after 5 seconds (safety)
-  setTimeout(showShareButton, 5000);
-}
 
-// Share logic (fixed & improved)
-document.getElementById("swipeFuryShare").addEventListener("click", async () => {
-  const url = window.location.href;
+  if (typeof originalHideFunction === "function") {
+    // Hook into your existing loader hide function
+    const newHide = (...args) => {
+      originalHideFunction(...args);
+      setTimeout(showShare, 400);   // tiny delay = smooth
+    };
+    window.startSwipeFury = window.startSwipeFuryGame = newHide;
+  } else {
+    // Fallback: show after 6 seconds max
+    setTimeout(showShare, 6000);
+  }
 
-  if (navigator.share) {
+  // Your original share logic (unchanged & working)
+  shareBtn.addEventListener("click", async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "SwipeFury",
+          text: "This game is insane! Try it now!",
+          url: shareURL
+        });
+        return;
+      } catch(e) {}
+    }
+
     try {
-      await navigator.share({
-        title: "SwipeFury",
-        text: "I’m addicted to SwipeFury! Try to beat my score!",
-        url: url
-      });
-      return;
-    } catch (e) { /* user cancelled */ }
-  }
+      await navigator.clipboard.writeText(shareURL);
+      alert("Link copied! Share with friends");
+    } catch {
+      prompt("Copy this link:", shareURL);
+    }
+  });
+})();
+	  </script>
 
-  // Fallback: copy to clipboard
-  try {
-    await navigator.clipboard.writeText(url);
-    alert("Link copied! Share it anywhere");
-  } catch {
-    prompt("Copy this link and share:", url);
-  }
-});
-	</script>
+
       
 
 <script>

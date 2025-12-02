@@ -2480,3 +2480,25 @@ export function loadAds() {
 // Call it after the game is fully ready
 initGame(); // your game init
 loadAds();  // ads load after game
+
+
+
+
+
+function stopAllAudio() {
+    document.querySelectorAll("audio").forEach(a => {
+        a.pause();
+        a.currentTime = 0;
+        a.src = "";  // hard-remove the audio
+    });
+}
+
+window.addEventListener("beforeunload", stopAllAudio);
+window.addEventListener("pagehide", stopAllAudio);
+
+
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        startGame(); // your game loader here
+    }, 30);
+});

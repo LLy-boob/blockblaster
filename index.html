@@ -81,7 +81,7 @@
 
 <body>
 
-<!-- 🔥 Hidden SEO Boost Section (Invisible to players) -->
+
 <div style="position:absolute; left:-9999px; top:-9999px; height:0; width:0; overflow:hidden; opacity:0;">
   <h1>SwipeFury — Free 3D Swipe & Burst Arcade Game</h1>
   <h2>Fast Reflex Game • Swipe Blocks • Burst Combos • Survive the Speed</h2>
@@ -103,7 +103,7 @@
   </p>
 	</div>
 <style>
-  /* Critical styles for game canvas and layout */
+  /* Criticayout */
   body, html {
     margin: 0; padding: 0; overflow: hidden; background: #000;
   }
@@ -115,9 +115,7 @@
 
 	
 
-<!-- ================================================== -->
-<!--     SWIPEFURY – FULL-SCREEN CINEMATIC LOADER       -->
-<!-- ================================================== -->
+
 <div id="swipeFuryLoader" style="
     position:fixed; inset:0; background:#000; 
     z-index:99999; overflow:hidden;
@@ -125,7 +123,7 @@
     transition:opacity 1.6s ease-out;
 ">
 
-  <!-- Full-screen animated logo (your favicon.png) -->
+
   <img src="favicon.png" id="fullLogo" alt="SwipeFury" style="
     width:100vw; height:100vh; object-fit:contain;
     animation: epicEnter 4.2s ease-out forwards,
@@ -133,7 +131,7 @@
                megaGlow 3s ease-in-out infinite;
   ">
 
-  <!-- Electric progress ring around the logo (appears after logo lands) -->
+
   <svg id="progressRing" viewBox="0 0 200 200" style="
     position:absolute; width:38vmin; height:38vmin; opacity:0;
     animation:fadeIn 0.8s 3.8s forwards;
@@ -151,7 +149,7 @@
     </defs>
   </svg>
 
-  <!-- Tagline (appears after logo) -->
+  
   <h1 style="
     position:absolute; bottom:15vh; color:#fff; font-family:'Arial Black';
     font-size:6vmin; letter-spacing:12px; text-shadow:0 0 30px #00ffff;
@@ -182,7 +180,7 @@ const loader = document.getElementById('swipeFuryLoader');
 const ring = document.querySelector('#progressRing circle:nth-child(2)');
 let progress = 0;
 
-// Smooth progress after logo lands
+// Smooth fter logo lands
 setTimeout(() => {
   const interval = setInterval(() => {
     progress += Math.random() * 9 + 6;
@@ -196,13 +194,13 @@ setTimeout(() => {
   }, 100);
 }, 4200);
 
-// Final fade-out
+// Fadut
 function hideLoader() {
   loader.style.opacity = '0';
   setTimeout(() => loader.remove(), 1700);
 }
 
-// Safety + manual trigger
+// Safeual trigger
 setTimeout(() => progress = 100, 8000);
 window.startSwipeFury = hideLoader;
 	</script>
@@ -216,26 +214,25 @@ window.startSwipeFury = hideLoader;
   (function() {
     const music = document.getElementById('bg-music');
 
-    // Function to safely play music
+    // F play music
     function playMusic() {
       if (!music) return;
       music.play().catch(() => {
-        // Autoplay blocked? Wait for user interaction
+        // Autoplay 
         document.addEventListener('click', () => music.play(), {once: true});
       });
     }
 
-    // 1️⃣ Try playing when page fully loads
     window.addEventListener('load', () => {
       playMusic();
     });
 
-    // 2️⃣ Optional: also try once the game canvas is ready (if you have a function like initGame)
+    
     if (typeof initGame === 'function') {
       const originalInit = initGame;
       initGame = function(...args) {
         originalInit.apply(this, args);
-        playMusic(); // ensure music plays after game is initialized
+        playMusic(); // ensure
       }
     }
   })();
@@ -290,7 +287,7 @@ window.startSwipeFury = hideLoader;
 
 
 
-<!-- MUSIC + MUTE + SAFE PROP ADS INIT + SERVICE WORKER -->
+
 <script>
   const music = document.getElementById('bgMusic');
   const muteBtn = document.getElementById('muteBtn');
@@ -298,12 +295,12 @@ window.startSwipeFury = hideLoader;
   let started = false;
   let adLoaded = false;
 
-  // PLAY MUSIC & LOAD PROP ADS ON FIRST TAP
+
   function startGame() {
     if (started) return;
     started = true;
 
-    // Start music — WITH ERROR LOGGING
+
     music.volume = 0.3;
     music.play()
       .then(() => {
@@ -356,7 +353,7 @@ window.startSwipeFury = hideLoader;
 (function() {
   const shareBtn = document.getElementById("shareBtn");
   
-  // Same styling as your mute button
+  
   shareBtn.style.position = 'fixed';
   shareBtn.style.bottom = '18px';
   shareBtn.style.left = '18px';
@@ -373,7 +370,7 @@ window.startSwipeFury = hideLoader;
   const svg = shareBtn.querySelector('svg');
   svg.style.display = 'block';
 
-  // SwipeFury-themed share messages
+  
   const texts = [
     "I just went berserk on SwipeFury! 🔥 Can you survive longer?",
     "SwipeFury is INSANE! Think you can top my score?",
@@ -410,9 +407,6 @@ window.startSwipeFury = hideLoader;
       
 
 <script>
-// =====================================================
-// TOUCH INPUT SYSTEM (Fixed + Combined)
-// =====================================================
 
 document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.querySelector("canvas");
@@ -435,29 +429,24 @@ document.addEventListener("DOMContentLoaded", () => {
         lastY = t.clientY;
     }, { passive: true });
 
-    // 3️⃣ Ultra-fast touch pipeline
+    
     canvas.style.touchAction = "none";
 });
 </script>
 
 
 <script>
-// =====================================================
-// ULTRA SMOOTH SWIPE ENGINE v3
-// =====================================================
 
-// Your block element — change this ID to your player/block
 const player = document.getElementById("block");
 
-// Target = where the finger is
+
 let targetX = 0;
 let targetY = 0;
 
-// Smooth position = where the block actually glides to
+
 let smoothX = 0;
 let smoothY = 0;
 
-// Smooth factor: lower = smoother, higher = faster
 const EASE = 0.18;
 
 // Animation loop
@@ -466,14 +455,14 @@ function smoothLoop() {
     smoothX += (targetX - smoothX) * EASE;
     smoothY += (targetY - smoothY) * EASE;
 
-    // GPU transform for ultra smooth motion
+    
     player.style.transform = `translate3d(${smoothX}px, ${smoothY}px, 0)`;
 
     requestAnimationFrame(smoothLoop);
 }
 smoothLoop();
 
-// Read the high-speed touch data
+
 document.addEventListener("touchmove", e => {
     const t = e.touches[0];
     targetX = t.clientX;
@@ -482,7 +471,7 @@ document.addEventListener("touchmove", e => {
 	</script>
 	
 	<style>
-/* ===== Install Popup Animation ===== */
+
 #autoInstallBox {
     opacity: 0;
     transform: translate(-50%, 20px);
@@ -502,7 +491,7 @@ document.addEventListener("touchmove", e => {
 }
 </style>
 
-<!-- ===== AUTO INSTALL POPUP ===== -->
+
 <div id="autoInstallBox" style="
     display:none;
     position: fixed;
@@ -536,7 +525,7 @@ document.addEventListener("touchmove", e => {
 </div>
 
 <script>
-/* ===== Install Prompt Logic ===== */
+
 let deferredPrompt = null;
 let popupShown = false;
 
@@ -554,14 +543,14 @@ function showPopup() {
         const box = document.getElementById("autoInstallBox");
         box.style.display = "block";
 
-        // Start animation
+        // Stanimation
         setTimeout(() => {
             box.classList.add("show");
         }, 20);
 
         popupShown = true;
 
-        // Re-show every 10 seconds until installed
+        
         setTimeout(() => {
             if (deferredPrompt) showPopup();
         }, 10000);
@@ -593,9 +582,7 @@ function hidePopup() {
 </script>
 
 
-<!-- ========================= -->
-<!-- Open in Browser Prompt -->
-<!-- ========================= -->
+
 <div id="openBrowserBox">
   <button id="openBrowserBtn">🌐 Open in Browser to install</button>
 </div>
@@ -637,12 +624,12 @@ function hidePopup() {
 
 <script>
 (function() {
-  // Prevent showing multiple times per session
+
   if (sessionStorage.getItem("openBrowserClicked")) return;
 
   const ua = navigator.userAgent || navigator.vendor || window.opera;
 
-  // Smart detection: common social media in-app browsers
+  // Smart rowsers
   const socialAppPatterns = [
     /FBAN|FBAV/i,          // Facebook app
     /Instagram/i,           // Instagram
@@ -656,34 +643,34 @@ function hidePopup() {
     /Pinterest/i            // Pinterest
   ];
 
-  // Also detect known in-app browser patterns (iOS & Android)
+  
   const inAppBrowserPatterns = [
     /CriOS/i,               // Chrome on iOS
     /FxiOS/i,               // Firefox on iOS
     /GSA/i                  // Google Search app
   ];
 
-  // Check if user is in social media or in-app browser
+
   const isSocialApp = socialAppPatterns.some(rx => rx.test(ua));
   const isInAppBrowser = /FBAN|FBAV|Instagram|Twitter|Snapchat|LinkedIn|Reddit|TikTok|Messenger|WhatsApp|Pinterest/i.test(ua)
                         && !/Chrome|Safari|Firefox|Edge/i.test(ua);
 
-  if (!isSocialApp && !isInAppBrowser) return; // Exit if not social media browser
+  if (!isSocialApp && !isInAppBrowser) return; // E browser
 
   const box = document.getElementById("openBrowserBox");
   const btn = document.getElementById("openBrowserBtn");
 
-  // Show button after a short delay
+
   setTimeout(() => {
     box.style.display = "block";
     requestAnimationFrame(() => box.classList.add("show"));
   }, 2000);
 
-  // Open page in default browser
+  // Openult browser
   btn.addEventListener("click", () => {
     window.open(window.location.href, "_blank");
 
-    // Hide and mark as clicked
+
     box.classList.remove("show");
     setTimeout(() => box.style.display = "none", 300);
     sessionStorage.setItem("openBrowserClicked", "true");
@@ -692,55 +679,52 @@ function hidePopup() {
 	</script>
 
 
-  <!-- All your existing HTML (canvas, hud, menus, mute button, etc.) stays 100% the same -->
+
   <canvas id="c"></canvas>
   <div class="hud">…</div>
   <div class="menus">…</div>
   <div id="muteBtn">…</div>
   <div id="shareBtn">…</div>
-  <!-- etc. keep everything you already have -->
 
 
 
-  <!-- ===================================================== -->
-  <!--         MAGIC PERFORMANCE AUTO-ADAPTER ENGINE         -->
-  <!-- ===================================================== -->
+
 <script src="https://cdn.jsdelivr.net/npm/detect-gpu@5.0.38/dist/detect-gpu.min.js" defer></script>
   <script>
-    // This whole block runs once at startup and decides the quality level
+
     (async () => {
       const gpu = new GpuJsDetector();
       const result = await gpu.getGPUTier({
-        mobileBenchmarkPercentile: 50,   // realistic for phones
+        mobileBenchmarkPercentile: 50,   // restic for nes
         desktopBenchmarkPercentile: 50
       });
 
-      // tier goes from 0 (very weak) → 3 (high-end)
-      const tier = result.tier; // 0, 1, 2 or 3 (or "WEBGL_UNSUPPORTED")
+      
+      const tier = result.tier; // 
       
       let scale = 1.0;
       let targetFps = 60;
       let lowQualityMode = false;
 
-      if (tier <= 1) {               // very low-end phones (most Android < $200)
+      if (tier <= 1) {              
         scale = 0.65;
         targetFps = 30;
         lowQualityMode = true;
-      } else if (tier === 2) {       // medium phones / old iPads
+      } else if (tier === 2) {      
         scale = 0.85;
         targetFps = 45;
-      } else if (tier >= 3) {        // good phones, all PCs
+      } else if (tier >= 3) {       
         scale = 1.0;
         targetFps = 60;
       }
 
-      // Expose to your game code (script.js can read these if you ever want)
+
       window.PERF_TIER = tier;
       window.PERF_SCALE = scale;
       window.PERF_FPS = targetFps;
       window.LOW_QUALITY = lowQualityMode;
 
-      // 1. Force lower resolution (the #1 fix for laggy WebGL on mobile)
+
       const canvas = document.getElementById('c');
       function resizeCanvas() {
         const dpr = window.devicePixelRatio || 1;
@@ -749,7 +733,7 @@ function hidePopup() {
         canvas.width  = canvas.clientWidth  * dpr * actualScale;
         canvas.height = canvas.clientHeight * dpr * actualScale;
 
-        // CSS size stays full screen (sharp on high-dpi, pixelated but fast on low)
+        
         canvas.style.width  = '100%';
         canvas.style.height = '100%';
       }
@@ -757,7 +741,7 @@ function hidePopup() {
       resizeCanvas();
       window.addEventListener('resize', resizeCanvas);
 
-      // 2. Cap FPS on low-end devices (prevents burning CPU/GPU)
+      
       let lastFrameTime = 0;
       const originalRaf = window.requestAnimationFrame;
       window.requestAnimationFrame = function(callback) {
@@ -775,20 +759,19 @@ function hidePopup() {
         });
       };
 
-      // 3. Remove 300 ms tap delay + make touch super responsive
+      
       canvas.style.touchAction = 'none';
       ['touchstart','touchmove','touchend','touchcancel'].forEach(ev => {
         canvas.addEventListener(ev, e => e.preventDefault(), { passive: false });
       });
 
-      // 4. Optional: force lower precision in shaders on trash GPUs
-      // (many raw WebGL games use highp everywhere → death on Mali/Adreno 5xx)
+      
       if (lowQualityMode) {
         const originalGetContext = HTMLCanvasElement.prototype.getContext;
         HTMLCanvasElement.prototype.getContext = function(type, attributes) {
           if (type.includes('webgl')) {
             attributes = attributes || {};
-            attributes.precisionHint = 'low'; // custom flag we add
+            attributes.precisionHint = 'low'; // cu we add
           }
           return originalGetContext.call(this, type, attributes);
         };
@@ -799,9 +782,7 @@ function hidePopup() {
 	</script>
 	
 	<script>
-// ===================== Performance Helper for Swipe Match-3 =====================
 
-// FPS monitor (optional, helps see if game drops frames)
 (function() {
     let last = performance.now();
     let frames = 0;
@@ -818,7 +799,7 @@ function hidePopup() {
     fpsMonitor();
 })();
 
-// Hardware acceleration helper for tiles
+
 function accelerateTiles(tileSelector) {
     const tiles = document.querySelectorAll(tileSelector);
     tiles.forEach(tile => {
@@ -827,7 +808,7 @@ function accelerateTiles(tileSelector) {
     });
 }
 
-// Smooth animation wrapper using requestAnimationFrame
+
 function animateTile(tile, targetX, targetY, duration = 300, callback) {
     const startX = tile.offsetLeft;
     const startY = tile.offsetTop;
@@ -848,7 +829,7 @@ function animateTile(tile, targetX, targetY, duration = 300, callback) {
     requestAnimationFrame(step);
 }
 
-// Throttle expensive game updates (e.g., combo checks)
+// pensive game u checks)
 function throttle(fn, limit = 50) {
     let lastCall = 0;
     return function(...args) {
@@ -860,32 +841,17 @@ function throttle(fn, limit = 50) {
     }
 }
 
-// ===================== Usage Examples =====================
 
-// 1. Accelerate all tiles
-accelerateTiles(".tile"); // replace ".tile" with your tile class
-
-// 2. Animate a tile smoothly
-// animateTile(document.querySelector(".tile"), 200, 300, 300);
-
-// 3. Throttle heavy functions
-// const checkCombosThrottled = throttle(checkCombos, 50);
+accelerateTiles(".tile"); // 
 	</script>
 
-	<!-- ====================================================== -->
-<!-- PERFORMANCE BOOST ENGINE v3 — ADAPTIVE SUPER BOOSTER    -->
-<!-- Ultra-safe sandbox: no overrides, opt-in adaptions only -->
-<!-- Paste BEFORE your game script                          -->
-<!-- ====================================================== -->
+	
 <script>
 (function () {
-  // single, immutable global handle for optional diagnostics (safe & minimal)
-  if (window.__PerfBoostV3) return; // prevent double-load
+
+  if (window.__PerfBoostV3) return; //double-load
   const __PerfBoostV3 = (() => {
 
-    /* ===========================
-       Internal state (private)
-       =========================== */
     const state = {
       tier: "unknown",
       fps: 60,
@@ -898,11 +864,9 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
       emergencyMode: false
     };
 
-    /* ===========================
-       Utilities (no globals touched)
-       =========================== */
+     */
     function safeLog(...args) {
-      // reduce noise; use console.debug to keep logs hidden by default
+
       if (window.location.search.indexOf("perfboost_debug") !== -1) {
         console.debug("[PerfBoostV3]", ...args);
       }
@@ -910,11 +874,7 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
 
     function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
-    /* ===========================
-       Passive FPS & Memory Monitor
-       - does NOT replace requestAnimationFrame
-       - purely observational
-       =========================== */
+
     function monitorLoop() {
       try {
         requestAnimationFrame((now) => {
@@ -925,7 +885,7 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
           if (state.frameTimes.length > 30) state.frameTimes.shift();
           const avg = state.frameTimes.reduce((a,b)=>a+b,0) / state.frameTimes.length || fps;
           state.fps = Math.round(avg);
-          // mark low device if sustained low fps
+          // markw fps
           if (avg < 40) state.lowDevice = true;
           else if (avg > 48) state.lowDevice = false;
 
@@ -944,12 +904,11 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
             }
           }
 
-          // lightweight thermal-like heuristic (doesn't require special APIs)
-          // check every 3s
+          
           const nowTs = Date.now();
           if (nowTs - state.lastThermalCheck > 3000) {
             state.lastThermalCheck = nowTs;
-            // crude: if recent fps dropped drastically -> possible throttling
+            
             const recent = state.frameTimes.slice(-5);
             if (recent.length >= 3) {
               const minRecent = Math.min(...recent);
@@ -964,32 +923,25 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
       } catch (e) {
         // never throw
       } finally {
-        // continue monitoring
-        setTimeout(monitorLoop, 1); // minimal delay; purely observational
+        // contoring
+        setTimeout(monitorLoop, 1); 
       }
     }
 
-    /* ===========================
-       Adaptive helpers (safe, non-invasive)
-       - These functions DO NOT override your game loop.
-       - They only *offer* guidance or opt-in effects.
-       =========================== */
-
-    // 1) Recommended frame-skip decision — game can call this each frame.
-    //    returns {skipRender: boolean, skipPhysics: boolean}
+    
     function getFrameAllowance() {
       const fps = state.fps || 60;
-      // skip more often when fps low or emergency
+      
       const emergency = state.emergencyMode || state.thermalThrottled;
-      // compute probability of skipping render this frame (0..1)
+
       let skipProb = 0;
       if (fps >= 50 && !emergency) skipProb = 0;
       else if (fps >= 40) skipProb = 0.1;
       else if (fps >= 30) skipProb = 0.25;
       else skipProb = 0.5 + (emergency ? 0.25 : 0);
 
-      // deterministic-ish skip using time seed to avoid heavy logic
-      const t = Math.floor(performance.now() / 16); // frame-ish tick
+      
+      const t = Math.floor(performance.now() / 16); // frick
       const seed = (t * 9301 + 49297) % 233280;
       const rand = (seed % 1000) / 1000;
       const skipRender = rand < skipProb;
@@ -998,12 +950,9 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
       return { skipRender, skipPhysics, fps: state.fps, emergency };
     }
 
-    // 2) Adaptive scale suggestion — safe: does NOT change canvas content,
-    //    only suggests a CSS scale factor. Game may read and apply if it wants.
-    //    If a canvas has opt-in attribute data-perfboost-scale="auto" we will
-    //    apply a non-destructive CSS scale to *that* canvas (no size attr changes).
+
     function computeScaleSuggestion() {
-      // target base resolution ~ device pixel ratio
+      
       const dpr = window.devicePixelRatio || 1;
       let base = 1;
       if (state.lowDevice || state.fps < 40) base = 0.75;
@@ -1011,22 +960,22 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
       return clamp(base, 0.5, 1) / dpr;
     }
 
-    // 3) Auto-attach safe CSS scaling to canvas only if canvas opted in
+    
     function attachCanvasScalingIfOptIn() {
       try {
-        // find canvases with data-perfboost-scale="auto"
+        
         const canvases = Array.from(document.querySelectorAll('canvas[data-perfboost-scale="auto"]'));
         if (!canvases.length) return;
         const scale = computeScaleSuggestion();
         canvases.forEach(c => {
-          // apply CSS transform only (non-destructive)
-          c.style.willChange = "transform";
+          // sform only (non-destructive)
+          c.stylehange = "transform";
           c.style.transformOrigin = "0 0";
-          // preserve integer pixel sizes visually by using transform scale
+          // preservem scale
           c.style.transform = `scale(${scale})`;
           // optionally reduce CSS layout jitter by setting image-rendering
           c.style.imageRendering = "pixelated";
-          // expose applied scale as attribute for game to read
+          
           c.setAttribute("data-perfboost-applied-scale", String(scale));
         });
       } catch (e) {
@@ -1034,16 +983,12 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
       }
     }
 
-    /* ===========================
-       Emergency memory/free-up strategy (non-invasive)
-       - Removes nodes that are clearly marked by developer
-       - Does not touch other DOM
-       =========================== */
+
     function emergencyCleanupSweep() {
       try {
-        // only run if emergencyMode true
+        // encyMode true
         if (!state.emergencyMode) return;
-        // developers can mark expendable nodes: class .perfboost-disposable
+        
         const nodes = document.querySelectorAll(".perfboost-disposable");
         nodes.forEach(n => {
           try { n.remove(); } catch (e) {}
@@ -1052,21 +997,17 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
       } catch (e) {}
     }
 
-    /* ===========================
-       Passive UI: small invisible overlay for status (Shadow DOM)
-       - Only present if developer explicitly sets data-perfboost-ui="visible"
-       - This ensures ZERO visual interference by default.
-       =========================== */
+    
     function maybeCreateStatusOverlay() {
       try {
         const visible = document.querySelector('[data-perfboost-ui="visible"]');
         if (!visible) return;
-        // create a tiny non-interactive overlay in shadow root
+        
         const host = document.createElement("div");
         host.style.position = "fixed";
         host.style.right = "6px";
         host.style.bottom = "6px";
-        host.style.zIndex = "2147483646"; // very top but non-interactive
+        host.style.zIndex = "2147483646"; 
         host.style.pointerEvents = "none";
         const shadow = host.attachShadow({mode: "closed"});
         const rootDiv = document.createElement("div");
@@ -1090,11 +1031,7 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
       } catch (e) {}
     }
 
-    /* ===========================
-       Non-invasive event broadcast API
-       - Game can listen: window.addEventListener('perfboost:update', e=>{})
-       - This emits regular read-only snapshots but DOES NOT allow mutation.
-       =========================== */
+
     function broadcastState() {
       try {
         const snapshot = {
@@ -1106,15 +1043,12 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
           thermalThrottled: state.thermalThrottled,
           timestamp: Date.now()
         };
-        const evt = new CustomEvent('perfboost:update', { detail: snapshot });
-        // dispatch non-cancelable to avoid interference
+        const evt = new CustomEvent('perfboost:update', { detail: snapshot });to avoid interference
         window.dispatchEvent(evt);
       } catch (e) {}
     }
 
-    /* ===========================
-       Init: detect device tier + start loops
-       =========================== */
+    
     function detectTier() {
       const cores = navigator.hardwareConcurrency || 2;
       const mem = navigator.deviceMemory || 2;
@@ -1130,16 +1064,16 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
     // periodic tasks
     function periodicTasks() {
       try {
-        attachCanvasScalingIfOptIn();   // safe CSS scaling for opt-in canvases
-        emergencyCleanupSweep();        // remove .perfboost-disposable nodes if emergency
-        broadcastState();               // emit snapshot
+        attachCanvasScalingIfOptIn();   
+        emergencyCleanupSweep();       
+        broadcastState();               
       } catch (e) {}
-      setTimeout(periodicTasks, 1000); // run every 1s
+      setTimeout(periodicTasks, 1000); /
     }
 
-    // public read-only API (frozen)
+
     const publicAPI = Object.freeze({
-      // read-only snapshot retrieval
+      // retrieval
       getInfo: () => ({
         fps: state.fps,
         tier: state.tier,
@@ -1148,19 +1082,17 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
         emergencyMode: state.emergencyMode,
         thermalThrottled: state.thermalThrottled
       }),
-      // recommended frame allowance helper — safe for game loops to call every frame
+
       getFrameAllowance,
-      // compute scale suggestion (game may use or ignore)
+
       computeScaleSuggestion,
-      // developer can trigger a manual light cleanup (only removes .perfboost-disposable)
+
       manualCleanup: () => { emergencyCleanupSweep(); },
       // version
       version: "3.0.0"
     });
 
-    /* ===========================
-       Start everything (non-invasive)
-       =========================== */
+ */
     function start() {
       detectTier();
       monitorLoop();     // passive FPS/memory monitor
@@ -1169,18 +1101,17 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
       safeLog("PerfBoostV3 started", publicAPI.getInfo());
     }
 
-    // auto-start after DOMInteractive so it doesn't fight initial parsing
     if (document.readyState === "complete" || document.readyState === "interactive") {
       setTimeout(start, 300);
     } else {
       document.addEventListener("DOMContentLoaded", () => setTimeout(start, 300), { once: true });
     }
 
-    // return public API for diagnostics — attach minimal immutable handle
+    
     return publicAPI;
   })();
 
-  // attach a minimal, read-only handle for optional use by the developer
+  
   try {
     Object.defineProperty(window, '__PerfBoostV3', {
       value: __PerfBoostV3,
@@ -1189,22 +1120,15 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
       enumerable: false
     });
   } catch (e) {
-    // if defineProperty fails, silently ignore (still safe)
+
     window.__PerfBoostV3 = __PerfBoostV3;
   }
 
 })();
 </script>
-<!-- ====================================================== -->
-<!--            PERFORMANCE BOOST ENGINE v3 END            -->
-<!-- ====================================================== -->
 
-        
-	<!-- ================================ -->
-<!--   SAFE AD + OPTIMIZER ENGINE     -->
-<!-- ================================ -->
 <div id="ad-container" style="width:320px; height:50px; margin:auto; text-align:center; visibility:hidden;">
-  <!-- Ad will load here -->
+  
 </div>
 
 <script>
@@ -1215,25 +1139,25 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
   const adContainer = document.getElementById('ad-container');
   if (!adContainer) return;
 
-  // Flicker/Glitch Absorber Engine
+
   const optimizer = {
-    buffer: document.createDocumentFragment(), // Temporary offscreen buffer
+    buffer: document.createDocumentFragment(), 
     ready: false,
     showAd: function(iframe) {
-      // Append to buffer first
+      
       this.buffer.appendChild(iframe);
-      // Minimal delay to ensure game rendering is stable
+      
       setTimeout(() => {
         adContainer.appendChild(this.buffer);
         adContainer.style.visibility = 'visible';
         this.ready = true;
-      }, 200); // 200ms delay is enough to absorb frame glitches
+      }, 200);
     }
   };
 
-  // Create ad iframe
+
   const iframe = document.createElement('iframe');
-  iframe.src = 'https://example.com/your-ad.html'; // Replace with your ad URL
+  iframe.src = 'https://example.com/your-ad.html'; 
   iframe.width = '320';
   iframe.height = '50';
   iframe.style.border = '0';
@@ -1241,16 +1165,14 @@ accelerateTiles(".tile"); // replace ".tile" with your tile class
   iframe.loading = 'lazy';
   iframe.allow = 'autoplay; fullscreen';
 
-  // Load ad asynchronously after game init
+
   window.addEventListener('load', () => {
     setTimeout(() => optimizer.showAd(iframe), 1000); // Delay 1s after game load
   });
 
 })();
 </script>
-<!-- ================================ -->
-<!--   SAFE AD + OPTIMIZER ENGINE END -->
-<!-- ================================ -->
+
 
 
          

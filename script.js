@@ -1,4 +1,4 @@
-
+(()=>{const e=["lly-boob.github.io","yourdomain.com"],o=location.hostname.toLowerCase();if(!e.includes(o))return document.body.innerHTML='<div style="font-family:Arial;text-align:center;margin-top:50px;font-size:22px;font-weight:bold;color:red;">Unauthorized: this game cannot run on this site</div>',void new Error("Unauthorized domain");console.log=console.warn=console.error=console.debug=(()=>{});(function(){const e=new Image;Object.defineProperty(e,"id",{get:function(){document.body.innerHTML="Unauthorized: Developer tools are not allowed.",console.clear(),document.body.style.display="none";throw new Error("DevTools Blocked")}}),setInterval(()=>{console.dir(e)},1e3)})();document.onkeydown=function(e){if("F12"===e.key||e.ctrlKey&&e.shiftKey&&("I"===e.key||"C"===e.key||"J"===e.key)||e.ctrlKey&&"U"===e.key)return e.preventDefault(),!1};})();
 
 
 

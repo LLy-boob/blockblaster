@@ -1,6 +1,4 @@
-/* ========================================
-   YOUR BEAUTIFUL BODY — 100% UNCHANGED
-   ======================================== */
+
 body {
 	margin: 0;
 	height: 100vh;
@@ -11,7 +9,7 @@ body {
 	letter-spacing: 0.06em;
 	color: rgba(255, 255, 255, 0.75);
 
-	/* Pure dark transparency look */
+	
 	background: linear-gradient(
 		120deg,
 		rgba(0, 0, 0, 0.92) 0%,
@@ -19,14 +17,12 @@ body {
 		rgba(0, 0, 0, 0.94) 100%
 	);
 
-	/* Slight frosted softness */
+
 	backdrop-filter: blur(1.5px);
 }
 
 
-/* ========================================
-   PRELOADER — PURE FLOATING BLOCK MASCOT
-   ======================================== */
+
 #preloader {
   position: fixed;
   inset: 0;
@@ -130,9 +126,7 @@ body {
 	transform: translateZ(0);
 }
 
-/* ========================================
-   HUD — NEON GLOW + PULSE
-   ======================================== */
+
 .hud__score,
 .pause-btn {
 	position: fixed;
@@ -249,9 +243,8 @@ body {
 	100% { box-shadow: 0 0 25px #60d4fa, 0 0 35px #a78bfa; }
 }
 
-/* ========================================
-   MENUS — GLASS + POP-IN ANIMATION
-   ======================================== */
+
+
 .menus::before {
 	content: '';
 	pointer-events: none;
@@ -346,7 +339,7 @@ h2 {
 	text-shadow: 0 0 10px #94a3b8;
 }
 
-/* BUTTONS — GLASS + HOVER LIFT + CLICKABLE */
+
 button {
 	display: block;
 	position: relative;

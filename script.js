@@ -19,9 +19,7 @@ const PINK =   { r: 0xfa, g: 0x24, b: 0x73 };
 const ORANGE = { r: 0xfe, g: 0x95, b: 0x22 };
 const allColors = [BLUE, GREEN, PINK, ORANGE];
 
-// ============================================================================
-// SOUND + MUSIC SYSTEM (ADD AFTER LINE ~100)
-// ============================================================================
+// 
 
 
 
@@ -1523,11 +1521,10 @@ function resumeGame() {
 
 function endGame() {
     console.log("🔄 Game Over - Showing score menu...");
-    
-    // Show game over menu first
+
     setActiveMenu(MENU_SCORE);
     
-    // Update score display (your existing code)
+    
     const finalScoreNode = $('.final-score-lbl');
     const highScoreNode = $('.high-score-lbl');
     
@@ -1541,7 +1538,6 @@ function endGame() {
         }
     }
 
-    // 4️⃣ SHOW INTERSTITIAL AT GAME OVER
     if (window.showInterstitialAtGameOver) {
         window.showInterstitialAtGameOver();
     } else {
@@ -2088,11 +2084,11 @@ function draw(ctx, width, height, viewScale) {
 
 function setupCanvases() {
 	const ctx = canvas.getContext('2d');
-	// devicePixelRatio alias
+	// devicePixelRa
 	const dpr = window.devicePixelRatio || 1;
-	// View will be scaled so objects appear sized similarly on all screen sizes.
+	
 	let viewScale;
-	// Dimensions (taking viewScale into account!)
+
 	let width, height;
 
 	function handleResize() {
@@ -2107,30 +2103,29 @@ function setupCanvases() {
 		canvas.style.height = h + 'px';
 	}
 
-	// Set initial size
+	// Sl ize
 	handleResize();
-	// resize fullscreen canvas
+	// resize fnvas
 	window.addEventListener('resize', handleResize);
 
 
-	// Run game loop
+	// Rl loop
 	let lastTimestamp = 0;
 	function frameHandler(timestamp) {
 		let frameTime = timestamp - lastTimestamp;
 		lastTimestamp = timestamp;
 
-		// always queue another frame
+	
 		raf();
 
-		// If game is paused, we'll still track frameTime (above) but all other
-		// game logic and drawing can be avoided.
+	
 		if (isPaused()) return;
 
-		// make sure negative time isn't reported (first frame can be whacky)
+		
 		if (frameTime < 0) {
 			frameTime = 17;
 		}
-		// - cap minimum framerate to 15fps[~68ms] (assuming 60fps[~17ms] as 'normal')
+
 		else if (frameTime > 68) {
 			frameTime = 68;
 		}
@@ -2138,7 +2133,7 @@ function setupCanvases() {
 		const halfW = width / 2;
 		const halfH = height / 2;
 
-		// Convert pointer position from screen to scene coords.
+		// 
 		pointerScene.x = pointerScreen.x / viewScale - halfW;
 		pointerScene.y = pointerScreen.y / viewScale - halfH;
 
@@ -2149,9 +2144,7 @@ function setupCanvases() {
 
 		// Auto clear canvas
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
-		// Auto scale drawing for high res displays, and incorporate `viewScale`.
-		// Also shift canvas so (0, 0) is the middle of the screen.
-		// This just works with 3D perspective projection.
+		// 
 		const drawScale = dpr * viewScale;
 		ctx.scale(drawScale, drawScale);
 		ctx.translate(halfW, halfH);
@@ -2190,8 +2183,7 @@ function handleCanvasPointerUp() {
 			touchBreak: true,
 			life: touchPointLife
 		});
-		// On when menus are open, point down/up toggles an interactive mode.
-		// We just need to rerender the menu system for it to respond.
+	
 		if (isMenuVisible()) renderMenus();
 	}
 }
@@ -2204,7 +2196,7 @@ function handleCanvasPointerMove(x, y) {
 }
 
 
-// Use pointer events if available, otherwise fallback to touch events (for iOS).
+// 
 if ('PointerEvent' in window) {
 	canvas.addEventListener('pointerdown', event => {
 		event.isPrimary && handleCanvasPointerDown(event.clientX, event.clientY);
@@ -2218,8 +2210,7 @@ if ('PointerEvent' in window) {
 		event.isPrimary && handleCanvasPointerMove(event.clientX, event.clientY);
 	});
 
-	// We also need to know if the mouse leaves the page. For this game, it's best if that
-	// cancels a swipe, so essentially acts as a "mouseup" event.
+
 	document.body.addEventListener('mouseleave', handleCanvasPointerUp);
 } else {
 	let activeTouchId = null;
@@ -2260,9 +2251,7 @@ if ('PointerEvent' in window) {
 setupCanvases();
 
 
-// --------------------------
-// DELAYED LOADERS (SAFE)
-// --------------------------
+
 
 window.addEventListener("load", () => {
   setTimeout(loadAdsSafe, 2500);
@@ -2271,11 +2260,11 @@ window.addEventListener("load", () => {
 });
 
 function loadAdsSafe() {
-  // TODO: Load monetag, propeller, vignette, menja, etc.
+  .
 }
 
 function loadPWA() {
-  // TODO: Service worker registration here
+  
 }
 
 function loadShareButton() {
@@ -2321,35 +2310,31 @@ startGameLoop();
 
 
 
-						// At the very end of your game init (after WebGL context, textures, etc.)
+					// 2. Your main mns, etc.)
 if (typeof window.startBlockBlasterGame === 'function') {
-    window.startBlockBlasterGame();  // This removes the beautiful loader
+    window.startBlockBlasterGame();  // Thisr
 }
 
 
-// ==================================================================
-// FINAL PERFECT START – WAIT FOR REAL FIRST FRAME + ADS INJECTED
-// ==================================================================
 (function waitUntilEverythingIsReallyReady() {
-    // 1. WebGL canvas must exist and be rendered at least once
+    
     const canvas = document.getElementById('c');
     const gl = canvas && (canvas.getContext('webgl') || canvas.getContext('webgl2'));
     const webglReady = gl && canvas.width > 0 && canvas.height > 0;
 
-    // 2. Your main menu must be visible (this means your game init finished)
+    
     const menuReady = document.querySelector('.menu--main')?.style.display !== 'none' ||
                       document.body.classList.contains('game-ready'); // fallback
 
-    // 3. Ads scripts injected (push/vignette/interstitial)
     const adsReady = document.querySelector('script[src*="nap5k"]') ||
                      document.querySelector('script[src*="gizokraijaw"]') ||
                      window.adsAlreadyLoaded;
 
-    // 4. First game frame has been drawn (your main loop ran at least once)
+    //  at least once)
     const frameRendered = window.gameLoopRunning || // if you have this variable
                           performance.now() > 3000; // or at least 3 seconds passed
 
-    // ALL CONDITIONS MET → hide loader smoothly
+
     if (webglReady && menuReady && adsReady && frameRendered) {
         if (typeof window.startBlockBlasterGame === 'function') {
             window.startBlockBlasterGame();
@@ -2358,31 +2343,28 @@ if (typeof window.startBlockBlasterGame === 'function') {
         return;
     }
 
-    // Not ready yet → check again in 150ms
+ 150ms
     setTimeout(waitUntilEverythingIsReallyReady, 150);
 })();
 
 
-	// ============================================================================
-// RELIABLE INTERSTITIAL AD SYSTEM - FOLLOWS ALL BEST PRACTICES
-// ============================================================================
 
 let adsInitialized = false;
 let interstitialReady = false;
 let interstitialAttempts = 0;
 const MAX_ATTEMPTS = 3;
 
-// 1️⃣ INITIALIZE ADS AFTER FIRST USER INTERACTION
+
 function initializeAds() {
     if (adsInitialized) return;
     adsInitialized = true;
     console.log("🎯 Ads system initialized after user interaction");
     
     loadBannerAd();
-    preloadInterstitialAd(); // First preload
+    preloadInterstitialAd(); // Fi
 }
 
-// 2️⃣ PRELOAD INTERSTITIAL DURING GAMEPLAY
+
 function preloadInterstitialAd() {
     if (interstitialReady) return;
     
@@ -2400,25 +2382,24 @@ function preloadInterstitialAd() {
 
     script.onerror = () => {
         console.warn("❌ Interstitial preload failed");
-        // Retry preload after 2 seconds
+        
         setTimeout(preloadInterstitialAd, 2000);
     };
 
     document.body.appendChild(script);
 }
 
-// 3️⃣ SHOW INTERSTITIAL AT GAME OVER (WITH MULTIPLE ATTEMPTS)
 function showInterstitialWithRetry() {
     interstitialAttempts++;
     console.log(`🎯 Attempt ${interstitialAttempts} to show interstitial`);
     
-    // ATTEMPT TO SHOW
+    // AHOW
     if (interstitialReady && window.mntag && typeof window.mntag.show === "function") {
         try {
             window.mntag.show();
             console.log("💰 INTERSTITIAL SHOWN - REVENUE EARNED!");
             
-            // 5️⃣ PRELOAD NEXT INTERSTITIAL IMMEDIATELY
+            
             interstitialReady = false;
             setTimeout(preloadInterstitialAd, 1000);
             return true;
@@ -2428,29 +2409,29 @@ function showInterstitialWithRetry() {
         }
     }
     
-    // 6️⃣ RETRY LOGIC
+    
     if (interstitialAttempts < MAX_ATTEMPTS) {
         console.log(`🔄 Retrying interstitial in 500ms... (${interstitialAttempts}/${MAX_ATTEMPTS})`);
         setTimeout(showInterstitialWithRetry, 500);
     } else {
         console.warn("❌ All interstitial attempts failed - will try next game");
-        // Still preload for next game
+        
         preloadInterstitialAd();
     }
     
     return false;
 }
 
-// 4️⃣ CALL THIS AT GAME OVER
+// 
 window.showInterstitialAtGameOver = function() {
     console.log("🎮 Game Over - Starting interstitial display process");
     interstitialAttempts = 0;
     
-    // Small delay for better UX, then show ad
+
     setTimeout(showInterstitialWithRetry, 800);
 };
 
-// BANNER AD (Separate from interstitial)
+// )
 function loadBannerAd() {
     const script = document.createElement("script");
     script.dataset.zone = "10203415";
@@ -2459,27 +2440,27 @@ function loadBannerAd() {
     document.body.appendChild(script);
 }
 
-// 1️⃣ START ADS AFTER FIRST USER INTERACTION
+
 document.addEventListener("click", initializeAds, { once: true });
 document.addEventListener("touchstart", initializeAds, { once: true });
 
-// Also auto-initialize after 5 seconds as backup
+
 setTimeout(() => {
     if (!adsInitialized) initializeAds();
 }, 5000);
 
 console.log("🎯 Reliable Ad System Loaded - Ready for Game Over!");
 
-// At the end of your module script (after WebGL init)
+
 export function loadAds() {
   const adContainer = document.getElementById('ad-container');
   if (!adContainer) return;
   adContainer.innerHTML = '<iframe src="your-ad.html" width="320" height="50" style="border:0;overflow:hidden;"></iframe>';
 }
 
-// Call it after the game is fully ready
-initGame(); // your game init
-loadAds();  // ads load after game
+
+initGame(); // your
+loadAds();  //
 
 
 
